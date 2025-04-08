@@ -24,7 +24,6 @@ import warnings
 warnings.filterwarnings('ignore')
 
 
-# basedir = '/home/soroosh/Dropbox/Main files/Courses/Papers/Turing Test/New test - based on 2/Results from participants'
 basedir = 'xxxxxx'
 
 
