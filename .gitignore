@@ -1,0 +1,6 @@
+*.txt
+*.xml
+*.iml
+/.idea/*
+/zero_shot/*
+/few_shot/*
