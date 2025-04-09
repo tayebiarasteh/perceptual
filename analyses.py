@@ -16,6 +16,7 @@ from itertools import combinations
 from scipy.stats import f_oneway, ttest_rel, ttest_ind, pearsonr, spearmanr
 from statsmodels.stats.multitest import multipletests
 from contextlib import redirect_stdout
+import matplotlib.image as mpimg
 
 
 
@@ -76,7 +77,7 @@ def zeroshot_turing():
             sns.boxplot(data=df_melted, x='Pathology', y='Accuracy', showfliers=True)
 
             # Font and style adjustments
-            plt.title("Turing test accuracy for zero-shot analysis", fontsize=18)
+            # plt.title("Turing test accuracy for zero-shot analysis", fontsize=18)
             plt.ylabel("Accuracy [%]", fontsize=16)
             plt.xlabel("Speech pathology group", fontsize=16)
             plt.xticks(rotation=30, fontsize=13)
@@ -114,7 +115,7 @@ def zeroshot_turing():
 
             # Print results
             print("\nRepeated-measures ANOVA result:")
-            print(f"F({df1}, {df2}) = {f_value:.2f}, p = {p_value:.4f}")
+            print(f"F({df1}, {df2}) = {f_value:.2f}, p = {p_value:.3f}")
 
             # Smart interpretation
             if p_value < 0.05:
@@ -124,7 +125,7 @@ def zeroshot_turing():
 
             print("\nInterpretation:")
             print(f"A repeated-measures ANOVA revealed a main effect of pathology group on discrimination accuracy, "
-                  f"F({df1}, {df2}) = {f_value:.2f}, p = {p_value:.4f}. \n{interpretation}")
+                  f"F({df1}, {df2}) = {f_value:.2f}, p = {p_value:.3f}. \n{interpretation}")
 
             print('\nThe F-statistic compares variance between groups (df₁) to variance within groups (df₂).')
             print('Larger F values suggest more separation between group means.')
@@ -160,10 +161,10 @@ def zeroshot_turing():
                 fdr_matrix.loc[g1, g2] = corr_p
                 fdr_matrix.loc[g2, g1] = corr_p
                 if corr_p < 0.05:
-                    sig_comparisons_fdr.append((g1, g2, round(corr_p, 4)))
+                    sig_comparisons_fdr.append((g1, g2, round(corr_p, 3)))
 
             # Round matrix for presentation
-            fdr_matrix_rounded = fdr_matrix.round(4)
+            fdr_matrix_rounded = fdr_matrix.round(3)
             print("\nFDR-Corrected Pairwise P-values (6x6):")
             print(fdr_matrix_rounded)
 
@@ -221,7 +222,7 @@ def zeroshot_turing():
                 t_stat, p_val = ttest_ind(native_scores, non_native_scores)
 
                 print(f"{pathology}:")
-                print(f"  Native: {native_avg} ± {native_sd}% vs. Non-native: {non_native_avg} ± {non_native_sd}% (t = {t_stat:.2f}, p = {p_val:.4f})\n")
+                print(f"  Native: {native_avg} ± {native_sd}% vs. Non-native: {non_native_avg} ± {non_native_sd}% (t = {t_stat:.2f}, p = {p_val:.3f})\n")
 
 
 
@@ -233,7 +234,7 @@ def fewishot_turing():
 
             print('\t\tResults for Few-shot case\n\n')
 
-            df_zero = pd.read_csv(os.path.join(basedir, 'Perceptual speech anonym - accuracyzeroshot.csv'))
+            df_zero = pd.read_csv(os.path.join(basedir, 'Perceptual speech anonym - accuracyfewshot.csv'))
 
             df_zero = df_zero.dropna().copy()
 
@@ -274,7 +275,7 @@ def fewishot_turing():
             sns.boxplot(data=df_melted, x='Pathology', y='Accuracy', showfliers=True)
 
             # Font and style adjustments
-            plt.title("Turing test accuracy for few-shot analysis", fontsize=18)
+            # plt.title("Turing test accuracy for few-shot analysis", fontsize=18)
             plt.ylabel("Accuracy [%]", fontsize=16)
             plt.xlabel("Speech pathology group", fontsize=16)
             plt.xticks(rotation=30, fontsize=13)
@@ -312,7 +313,7 @@ def fewishot_turing():
 
             # Print results
             print("\nRepeated-measures ANOVA result:")
-            print(f"F({df1}, {df2}) = {f_value:.2f}, p = {p_value:.4f}")
+            print(f"F({df1}, {df2}) = {f_value:.2f}, p = {p_value:.3f}")
 
             # Smart interpretation
             if p_value < 0.05:
@@ -322,7 +323,7 @@ def fewishot_turing():
 
             print("\nInterpretation:")
             print(f"A repeated-measures ANOVA revealed a main effect of pathology group on discrimination accuracy, "
-                  f"F({df1}, {df2}) = {f_value:.2f}, p = {p_value:.4f}. \n{interpretation}")
+                  f"F({df1}, {df2}) = {f_value:.2f}, p = {p_value:.3f}. \n{interpretation}")
 
             print('\nThe F-statistic compares variance between groups (df₁) to variance within groups (df₂).')
             print('Larger F values suggest more separation between group means.')
@@ -358,10 +359,10 @@ def fewishot_turing():
                 fdr_matrix.loc[g1, g2] = corr_p
                 fdr_matrix.loc[g2, g1] = corr_p
                 if corr_p < 0.05:
-                    sig_comparisons_fdr.append((g1, g2, round(corr_p, 4)))
+                    sig_comparisons_fdr.append((g1, g2, round(corr_p, 3)))
 
             # Round matrix for presentation
-            fdr_matrix_rounded = fdr_matrix.round(4)
+            fdr_matrix_rounded = fdr_matrix.round(3)
             print("\nFDR-Corrected Pairwise P-values (6x6):")
             print(fdr_matrix_rounded)
 
@@ -404,7 +405,7 @@ def fewishot_turing():
             # Independent t-test
             t_stat_all, p_val_all = ttest_ind(native_all, non_native_all)
 
-            print(f"Overall \nNative: {native_avg_all} ± {native_sd_all}% vs. Non-native: {non_native_avg_all} ± {non_native_sd_all}% (t = {t_stat_all:.2f}, p = {p_val_all:.4f})\n")
+            print(f"Overall \nNative: {native_avg_all} ± {native_sd_all}% vs. Non-native: {non_native_avg_all} ± {non_native_sd_all}% (t = {t_stat_all:.2f}, p = {p_val_all:.3f})\n")
 
             for pathology in numeric_cols:
                 native_scores = df_zero[df_zero['Listener'].isin(native_listeners)][pathology]
@@ -418,7 +419,7 @@ def fewishot_turing():
                 t_stat, p_val = ttest_ind(native_scores, non_native_scores)
 
                 print(f"{pathology}:")
-                print(f"  Native: {native_avg} ± {native_sd}% vs. Non-native: {non_native_avg} ± {non_native_sd}% (t = {t_stat:.2f}, p = {p_val:.4f})\n")
+                print(f"  Native: {native_avg} ± {native_sd}% vs. Non-native: {non_native_avg} ± {non_native_sd}% (t = {t_stat:.2f}, p = {p_val:.3f})\n")
 
 
 
@@ -727,7 +728,7 @@ def quality():
     # Plot layout settings
     fig, axes = plt.subplots(3, 1, figsize=(12, 18), sharex=True, sharey=True)
     groups = ['All', 'Non-native', 'Native']
-    titles = ['(a) All listeners', '(b) Non-native listeners', '(c) Native listeners']
+    titles = ['a) All listeners', 'b) Non-native listeners', 'c) Native listeners']
 
     for i, grp in enumerate(groups):
         ax = axes[i]
@@ -739,7 +740,7 @@ def quality():
                     palette='Set2', errorbar=None, width=0.6)
 
         # Subfigure title (top-left)
-        ax.text(-0.05, 1.05, titles[i], transform=ax.transAxes, fontsize=18, fontweight='bold', va='top', ha='left')
+        ax.set_title(titles[i], loc='left', fontsize=18)
 
         # Axis formatting
         ax.set_ylabel('Perceived quality normalized [%]', fontsize=16)
@@ -904,10 +905,114 @@ def quality():
 
 
 
+def correlation():
+
+    df_zeroshot = pd.read_csv(os.path.join(basedir, 'zeroshottemp.csv'))
+    df_fewshot = pd.read_csv(os.path.join(basedir, 'fewshottemp.csv'))
+
+
+    # Extract numeric parts
+    df_zeroshot_numeric = df_zeroshot.select_dtypes(include='number')
+    df_fewshot_numeric = df_fewshot.select_dtypes(include='number')
+
+    # -------------------------------
+    # 2. Manually define EER and Gain data
+    # -------------------------------
+
+    # Zero-shot EER values
+    anonymized_zeroshot = pd.DataFrame({
+        "Dysarthria": [36.59],
+        "Dysglossia": [34.26],
+        "Dysphonia": [38.86],
+        "CLP": [32.19],
+        "Overall patients": [30.24]
+    })
+
+    gain_zeroshot = pd.DataFrame({
+        "Dysarthria": [34.79],
+        "Dysglossia": [32.48],
+        "Dysphonia": [36.67],
+        "CLP": [25.18],
+        "Overall patients": [27.28]
+    })
+
+    # -------------------------------
+    # 3. Combine into labeled DataFrames
+    # -------------------------------
+
+    df_combined = pd.concat([
+        df_zeroshot_numeric,
+        anonymized_zeroshot,
+        gain_zeroshot
+    ], ignore_index=True)
+
+    df_combined.index = ['AccuracyZeroshot', 'Anonymized', 'Gain']
+
+    df_combined_fewshot = pd.concat([
+        df_fewshot_numeric,
+        anonymized_fewshot,
+        gain_fewshot
+    ], ignore_index=True)
+
+    df_combined_fewshot.index = ['AccuracyFewshot', 'AnonymizedFewshot', 'GainFewshot']
+
+    # -------------------------------
+    # 4. Compute Pearson r & p-values
+    # -------------------------------
+
+    r1, p1 = pearsonr(df_combined.loc['Anonymized'], df_combined.loc['AccuracyZeroshot'])
+    r2, p2 = pearsonr(df_combined.loc['Gain'], df_combined.loc['AccuracyZeroshot'])
+    r3, p3 = pearsonr(df_combined_fewshot.loc['AnonymizedFewshot'], df_combined_fewshot.loc['AccuracyFewshot'])
+    r4, p4 = pearsonr(df_combined_fewshot.loc['GainFewshot'], df_combined_fewshot.loc['AccuracyFewshot'])
+
+    # Summary table
+    summary_df = pd.DataFrame({
+        "Metric Comparison": [
+            "EER vs Zero-shot Accuracy",
+            "EER Gain vs Zero-shot Accuracy",
+            "EER vs Few-shot Accuracy",
+            "EER Gain vs Few-shot Accuracy"
+        ],
+        "Pearson’s r": [round(r1, 3), round(r2, 3), round(r3, 3), round(r4, 3)],
+        "p-value": [round(p1, 3), round(p2, 3), round(p3, 3), round(p4, 3)]
+    })
+
+    # Save summary CSV
+    summary_path = "./pearson_summary_all_with_gain.csv"
+    summary_df.to_csv(summary_path, index=False)
+
+    # -------------------------------
+    # 5. Scatter plot (only EER vs Accuracy)
+    # -------------------------------
+
+    plt.figure(figsize=(8, 6))
+
+    # Zero-shot vs EER
+    plt.scatter(df_combined.loc['AccuracyZeroshot'], df_combined.loc['Anonymized'],
+                label='Zero-shot vs EER', marker='o')
+    pdb.set_trace()
+
+    # Few-shot vs EER
+    plt.scatter(df_combined_fewshot.loc['AccuracyFewshot'], df_combined_fewshot.loc['AnonymizedFewshot'],
+                label='Few-shot vs EER', marker='^')
+
+    plt.title("Accuracy vs EER (Zero-shot & Few-shot)")
+    plt.xlabel("Accuracy (%)")
+    plt.ylabel("EER (%)")
+    plt.legend()
+    plt.grid(True)
+    plt.tight_layout()
+    plot_path = "./filtered_scatter_plot.png"
+    plt.savefig(plot_path)
+    plt.close()
+
+    print("Saved summary table:", summary_path)
+    print("Saved scatter plot:", plot_path)
 
 
 
 def scatterplot():
+    os.makedirs('correlation', exist_ok=True)
     # Subplot 1: AUC vs Perceived Quality
 
     a1 = [94.86, 98.86, 98.38, 96.37, 96.07]  # AUC anonym [fixed]
@@ -927,7 +1032,7 @@ def scatterplot():
     # --- First Subplot ---
     axs[0].scatter(b2_circle, a2, color='blue', marker='o', label='Zero-shot Turing', s=120)
     axs[0].scatter(b2_triangle, a2, color='orange', marker='^', label='Few-shot Turing', s=120)
-    axs[0].set_title("a) EER vs. Turing accuracy", fontsize=20)
+    axs[0].set_title("a) EER vs. Turing accuracy", fontsize=20, loc='left')
     axs[0].set_xlabel("Turing accuracy [%]", fontsize=18)
     axs[0].set_ylabel("EER [%]", fontsize=18)
     axs[0].tick_params(axis='both', labelsize=16)
@@ -937,7 +1042,7 @@ def scatterplot():
 
     # --- Second Subplot ---
     axs[1].scatter(b1_circle, a1, color='red', marker='s', label='Anonymized', s=120)  # Red squares
-    axs[1].set_title("b) Quality anonymized", fontsize=20)
+    axs[1].set_title("b) Quality anonymized", fontsize=20, loc='left')
     axs[1].set_xlabel("Perceived quality normalized [%]", fontsize=18)
     axs[1].set_ylabel("AUC [%]", fontsize=18)
     axs[1].tick_params(axis='both', labelsize=16)
@@ -947,7 +1052,7 @@ def scatterplot():
 
     # --- Third Subplot ---
     axs[2].scatter(b2_circle, a2, color='black', marker='*', label='Original', s=120)  # Red squares
-    axs[2].set_title("c) Quality original", fontsize=20)
+    axs[2].set_title("c) Quality original", fontsize=20, loc='left')
     axs[2].set_xlabel("Perceived quality normalized [%]", fontsize=18)
     axs[2].set_ylabel("AUC [%]", fontsize=18)
     axs[2].tick_params(axis='both', labelsize=16)
@@ -957,16 +1062,39 @@ def scatterplot():
 
 
     plt.tight_layout()
-    plt.savefig("./scatter_plot_correlation.png")
+    plt.savefig("./correlation/scatter_plot_correlation.png")
 
+
+
+
+def boxplot_appender():
+    img1 = mpimg.imread('./zero_shot/turing_box_zeroshot.png')
+    img2 = mpimg.imread('./few_shot/turing_box_fewshot.png')
+
+    # Create the figure and subplots
+    fig, axs = plt.subplots(2, 1, figsize=(12, 16))  # Optimal screen fit
+
+    # Display each image in a subplot
+    axs[0].imshow(img1)
+    axs[0].axis('off')  # Hide axes
+    axs[0].set_title('a) Turing test accuracy for single-shot analysis', fontsize=20, loc='left')
+
+    axs[1].imshow(img2)
+    axs[1].axis('off')  # Hide axes
+    axs[1].set_title('b) Turing test accuracy for few-shot analysis', fontsize=20, loc='left')
+
+    # Adjust layout and show the figure
+    plt.tight_layout(pad=3.0)
+    plt.savefig("./zero_shot/boxplot.png")
 
 
 
 
 if __name__ == '__main__':
-    # zeroshot_turing()
-    # fewishot_turing()
+    zeroshot_turing()
+    fewishot_turing()
+    boxplot_appender()
     # male_vs_female_turing_fewshot()
     # male_vs_female_turing_zeroshot()
-    # quality()
+    quality()
     scatterplot()
