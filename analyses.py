@@ -424,172 +424,93 @@ def fewishot_turing():
 
 
 def male_vs_female_turing_fewshot():
-    os.makedirs('few_shot', exist_ok=True)
+    os.makedirs('fairness', exist_ok=True)
 
-    male_df = pd.read_csv(os.path.join(basedir, 'male - accuracyfewshot.csv'))
-    female_df = pd.read_csv(os.path.join(basedir, 'female - accuracyfewshot.csv'))
+    df_male = pd.read_csv(os.path.join(basedir, 'male - accuracyfewshot.csv')).dropna().set_index("Listener")
+    df_female = pd.read_csv(os.path.join(basedir, 'female - accuracyfewshot.csv')).dropna().set_index("Listener")
 
-    pathologies = ['CLP', 'Control adults', 'Control children', 'Dysarthria', 'Dysglossia', 'Dysphonia']
-    controls = ['Control adults', 'Control children']
+    # Define pathology/control groups
     patients = ['CLP', 'Dysarthria', 'Dysglossia', 'Dysphonia']
+    controls = ['Control adults', 'Control children']
 
-    def mean_sd(arr):
-        arr = arr[~np.isnan(arr)]
-        return round(arr.mean()), round(arr.std())
-
+    # Initialize results list
     results = []
 
-    # ---- Per-pathology comparisons ----
-    for pathology in pathologies:
-        male_scores = male_df[pathology].dropna()
-        female_scores = female_df[pathology].dropna()
-
-        t_stat, p_val = ttest_ind(male_scores, female_scores)
-        m_mean, m_sd = mean_sd(male_scores)
-        f_mean, f_sd = mean_sd(female_scores)
-
+    # Compute group-wise paired t-tests
+    for group in patients + controls:
+        t_stat, p_val = ttest_rel(df_male[group], df_female[group])
         results.append({
-            'Group': pathology,
-            'Male Accuracy (Mean ± SD)': f"{m_mean} ± {m_sd}",
-            'Female Accuracy (Mean ± SD)': f"{f_mean} ± {f_sd}",
-            'Raw p-value': p_val
+            "Group": group,
+            "Male Mean": round(df_male[group].mean()),
+            "Female Mean": round(df_female[group].mean()),
+            "p-value": round(p_val, 3)
         })
 
-    # ---- Controls ----
-    male_ctrl = male_df[controls].values.flatten()
-    female_ctrl = female_df[controls].values.flatten()
-    t_ctrl, p_ctrl = ttest_ind(male_ctrl[~np.isnan(male_ctrl)], female_ctrl[~np.isnan(female_ctrl)])
-    m_mean, m_sd = mean_sd(male_ctrl)
-    f_mean, f_sd = mean_sd(female_ctrl)
-    results.append({
-        'Group': 'Controls',
-        'Male Accuracy (Mean ± SD)': f"{m_mean} ± {m_sd}",
-        'Female Accuracy (Mean ± SD)': f"{f_mean} ± {f_sd}",
-        'Raw p-value': p_ctrl
-    })
+    # Compute patient and control averages
+    df_male["Patient Avg"] = df_male[patients].mean(axis=1)
+    df_female["Patient Avg"] = df_female[patients].mean(axis=1)
+    df_male["Control Avg"] = df_male[controls].mean(axis=1)
+    df_female["Control Avg"] = df_female[controls].mean(axis=1)
 
-    # ---- Patients ----
-    male_pat = male_df[patients].values.flatten()
-    female_pat = female_df[patients].values.flatten()
-    t_pat, p_pat = ttest_ind(male_pat[~np.isnan(male_pat)], female_pat[~np.isnan(female_pat)])
-    m_mean, m_sd = mean_sd(male_pat)
-    f_mean, f_sd = mean_sd(female_pat)
-    results.append({
-        'Group': 'Patients',
-        'Male Accuracy (Mean ± SD)': f"{m_mean} ± {m_sd}",
-        'Female Accuracy (Mean ± SD)': f"{f_mean} ± {f_sd}",
-        'Raw p-value': p_pat
-    })
+    # Perform t-tests on the averages
+    for group in ["Patient Avg", "Control Avg"]:
+        t_stat, p_val = ttest_rel(df_male[group], df_female[group])
+        results.append({
+            "Group": group,
+            "Male Mean": round(df_male[group].mean()),
+            "Female Mean": round(df_female[group].mean()),
+            "p-value": round(p_val, 3)
+        })
 
-    # ---- Overall ----
-    male_all = male_df[pathologies].values.flatten()
-    female_all = female_df[pathologies].values.flatten()
-    t_all, p_all = ttest_ind(male_all[~np.isnan(male_all)], female_all[~np.isnan(female_all)])
-    m_mean, m_sd = mean_sd(male_all)
-    f_mean, f_sd = mean_sd(female_all)
-    results.append({
-        'Group': 'Overall',
-        'Male Accuracy (Mean ± SD)': f"{m_mean} ± {m_sd}",
-        'Female Accuracy (Mean ± SD)': f"{f_mean} ± {f_sd}",
-        'Raw p-value': p_all
-    })
+    # Convert to DataFrame and save
+    df_results = pd.DataFrame(results)
+    df_results.to_csv("./fairness/gender_fairness_fewshot.csv", index=False)
 
-    # ---- Apply FDR correction ----
-    raw_pvals = [row['Raw p-value'] for row in results]
-    _, corrected_pvals, _, _ = multipletests(raw_pvals, method='fdr_bh')
-
-    # Add corrected values
-    for i, p_corr in enumerate(corrected_pvals):
-        results[i]['FDR-corrected p-value'] = round(p_corr, 4)
-        results[i]['Raw p-value'] = round(results[i]['Raw p-value'], 4)
-
-    gender_comparison_df = pd.DataFrame(results)
-    gender_comparison_df.to_csv("./few_shot/gender_fewshot.csv", index=False)
 
 
 
 def male_vs_female_turing_zeroshot():
-    os.makedirs('zero_shot', exist_ok=True)
+    os.makedirs('fairness', exist_ok=True)
 
-    male_df = pd.read_csv(os.path.join(basedir, 'male - accuracyzeroshot.csv'))
-    female_df = pd.read_csv(os.path.join(basedir, 'female - accuracyzeroshot.csv'))
+    df_male = pd.read_csv(os.path.join(basedir, 'male - accuracyzeroshot.csv')).dropna().set_index("Listener")
+    df_female = pd.read_csv(os.path.join(basedir, 'female - accuracyzeroshot.csv')).dropna().set_index("Listener")
 
-    pathologies = ['CLP', 'Control adults', 'Control children', 'Dysarthria', 'Dysglossia', 'Dysphonia']
-    controls = ['Control adults', 'Control children']
+    # Define pathology/control groups
     patients = ['CLP', 'Dysarthria', 'Dysglossia', 'Dysphonia']
+    controls = ['Control adults', 'Control children']
 
-    def mean_sd(arr):
-        arr = arr[~np.isnan(arr)]
-        return round(arr.mean()), round(arr.std())
-
+    # Initialize results list
     results = []
 
-    # ---- Per-pathology comparisons ----
-    for pathology in pathologies:
-        male_scores = male_df[pathology].dropna()
-        female_scores = female_df[pathology].dropna()
-
-        t_stat, p_val = ttest_ind(male_scores, female_scores)
-        m_mean, m_sd = mean_sd(male_scores)
-        f_mean, f_sd = mean_sd(female_scores)
-
+    # Compute group-wise paired t-tests
+    for group in patients + controls:
+        t_stat, p_val = ttest_rel(df_male[group], df_female[group])
         results.append({
-            'Group': pathology,
-            'Male Accuracy (Mean ± SD)': f"{m_mean} ± {m_sd}",
-            'Female Accuracy (Mean ± SD)': f"{f_mean} ± {f_sd}",
-            'Raw p-value': p_val
+            "Group": group,
+            "Male Mean": round(df_male[group].mean()),
+            "Female Mean": round(df_female[group].mean()),
+            "p-value": round(p_val, 3)
         })
 
-    # ---- Controls ----
-    male_ctrl = male_df[controls].values.flatten()
-    female_ctrl = female_df[controls].values.flatten()
-    t_ctrl, p_ctrl = ttest_ind(male_ctrl[~np.isnan(male_ctrl)], female_ctrl[~np.isnan(female_ctrl)])
-    m_mean, m_sd = mean_sd(male_ctrl)
-    f_mean, f_sd = mean_sd(female_ctrl)
-    results.append({
-        'Group': 'Controls',
-        'Male Accuracy (Mean ± SD)': f"{m_mean} ± {m_sd}",
-        'Female Accuracy (Mean ± SD)': f"{f_mean} ± {f_sd}",
-        'Raw p-value': p_ctrl
-    })
+    # Compute patient and control averages
+    df_male["Patient Avg"] = df_male[patients].mean(axis=1)
+    df_female["Patient Avg"] = df_female[patients].mean(axis=1)
+    df_male["Control Avg"] = df_male[controls].mean(axis=1)
+    df_female["Control Avg"] = df_female[controls].mean(axis=1)
 
-    # ---- Patients ----
-    male_pat = male_df[patients].values.flatten()
-    female_pat = female_df[patients].values.flatten()
-    t_pat, p_pat = ttest_ind(male_pat[~np.isnan(male_pat)], female_pat[~np.isnan(female_pat)])
-    m_mean, m_sd = mean_sd(male_pat)
-    f_mean, f_sd = mean_sd(female_pat)
-    results.append({
-        'Group': 'Patients',
-        'Male Accuracy (Mean ± SD)': f"{m_mean} ± {m_sd}",
-        'Female Accuracy (Mean ± SD)': f"{f_mean} ± {f_sd}",
-        'Raw p-value': p_pat
-    })
+    # Perform t-tests on the averages
+    for group in ["Patient Avg", "Control Avg"]:
+        t_stat, p_val = ttest_rel(df_male[group], df_female[group])
+        results.append({
+            "Group": group,
+            "Male Mean": round(df_male[group].mean()),
+            "Female Mean": round(df_female[group].mean()),
+            "p-value": round(p_val, 3)
+        })
 
-    # ---- Overall ----
-    male_all = male_df[pathologies].values.flatten()
-    female_all = female_df[pathologies].values.flatten()
-    t_all, p_all = ttest_ind(male_all[~np.isnan(male_all)], female_all[~np.isnan(female_all)])
-    m_mean, m_sd = mean_sd(male_all)
-    f_mean, f_sd = mean_sd(female_all)
-    results.append({
-        'Group': 'Overall',
-        'Male Accuracy (Mean ± SD)': f"{m_mean} ± {m_sd}",
-        'Female Accuracy (Mean ± SD)': f"{f_mean} ± {f_sd}",
-        'Raw p-value': p_all
-    })
-
-    # ---- Apply FDR correction ----
-    raw_pvals = [row['Raw p-value'] for row in results]
-    _, corrected_pvals, _, _ = multipletests(raw_pvals, method='fdr_bh')
-
-    # Add corrected values
-    for i, p_corr in enumerate(corrected_pvals):
-        results[i]['FDR-corrected p-value'] = round(p_corr, 4)
-        results[i]['Raw p-value'] = round(results[i]['Raw p-value'], 4)
-
-    gender_comparison_df = pd.DataFrame(results)
-    gender_comparison_df.to_csv("./zero_shot/gender_zeroshot.csv", index=False)
+    # Convert to DataFrame and save
+    df_results = pd.DataFrame(results)
+    df_results.to_csv("./fairness/gender_fairness_zeroshot.csv", index=False)
 
 
 
@@ -1091,10 +1012,10 @@ def boxplot_appender():
 
 
 if __name__ == '__main__':
-    zeroshot_turing()
-    fewishot_turing()
-    boxplot_appender()
+    # zeroshot_turing()
+    # fewishot_turing()
+    # boxplot_appender()
     # male_vs_female_turing_fewshot()
-    # male_vs_female_turing_zeroshot()
-    quality()
-    scatterplot()
+    male_vs_female_turing_zeroshot()
+    # quality()
+    # scatterplot()
