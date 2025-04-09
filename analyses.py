@@ -13,7 +13,7 @@ import numpy as np
 from statsmodels.stats.anova import AnovaRM
 import seaborn as sns
 from itertools import combinations
-from scipy.stats import f_oneway, ttest_rel, ttest_ind
+from scipy.stats import f_oneway, ttest_rel, ttest_ind, pearsonr, spearmanr
 from statsmodels.stats.multitest import multipletests
 from contextlib import redirect_stdout
 
@@ -904,9 +904,62 @@ def quality():
 
 
 
-def correlation():
 
-    df_raw = pd.read_csv(os.path.join(basedir, 'Perceptual speech anonym - Quality Percentage.csv'), header=None)
+
+
+def scatterplot():
+    # Subplot 1: AUC vs Perceived Quality
+
+    a1 = [94.86, 98.86, 98.38, 96.37, 96.07]  # AUC anonym [fixed]
+    b1_circle = [56.6666666666667, 60.8333333333333, 58.1666666666667, 59.6666666666667, 58.8333333333333] # [change] quality anonym
+
+    a2 = [97.33, 97.73, 9.12, 96.44, 97.05]  # AUC org [fixed]
+    b2_circle = [84.8333333333333, 89.1666666666667, 80.1666666666667, 79.1666666666667, 83.3333333333333] # [change] quality org
+
+    # Subplot 2: EER vs Turing Accuracy
+    a2 = [36.59, 34.26, 38.86, 32.19, 30.24]  # EER [fixed]
+    b2_circle = [92.3333333333333, 97.3333333333333, 89.3333333333333, 87.1666666666667, 91.5416666666667] # [change] zeroshot
+    b2_triangle = [91.1666666666667, 96.6666666666667, 91.5, 89.5, 92.2083333333333] # [change] fewshot
+
+
+    fig, axs = plt.subplots(1, 3, figsize=(20, 6))
+
+    # --- First Subplot ---
+    axs[0].scatter(b2_circle, a2, color='blue', marker='o', label='Zero-shot Turing', s=120)
+    axs[0].scatter(b2_triangle, a2, color='orange', marker='^', label='Few-shot Turing', s=120)
+    axs[0].set_title("a) EER vs. Turing accuracy", fontsize=20)
+    axs[0].set_xlabel("Turing accuracy [%]", fontsize=18)
+    axs[0].set_ylabel("EER [%]", fontsize=18)
+    axs[0].tick_params(axis='both', labelsize=16)
+    axs[0].legend(fontsize=16)
+    axs[0].set_ylim(30, 40)
+    axs[0].set_xlim(87.5, 98)
+
+    # --- Second Subplot ---
+    axs[1].scatter(b1_circle, a1, color='red', marker='s', label='Anonymized', s=120)  # Red squares
+    axs[1].set_title("b) Quality anonymized", fontsize=20)
+    axs[1].set_xlabel("Perceived quality normalized [%]", fontsize=18)
+    axs[1].set_ylabel("AUC [%]", fontsize=18)
+    axs[1].tick_params(axis='both', labelsize=16)
+    # axs[1].legend(fontsize=16)
+    axs[1].set_ylim(94, 100)
+    axs[1].set_xlim(55.5, 61)
+
+    # --- Third Subplot ---
+    axs[2].scatter(b2_circle, a2, color='black', marker='*', label='Original', s=120)  # Red squares
+    axs[2].set_title("c) Quality original", fontsize=20)
+    axs[2].set_xlabel("Perceived quality normalized [%]", fontsize=18)
+    axs[2].set_ylabel("AUC [%]", fontsize=18)
+    axs[2].tick_params(axis='both', labelsize=16)
+    # axs[2].legend(fontsize=16)
+    axs[2].set_ylim(30, 40)
+    axs[2].set_xlim(85.5, 98)
+
+
+    plt.tight_layout()
+    plt.savefig("./scatter_plot_correlation.png")
+
+
 
 
 
@@ -916,4 +969,4 @@ if __name__ == '__main__':
     # male_vs_female_turing_fewshot()
     # male_vs_female_turing_zeroshot()
     # quality()
-    correlation()
+    scatterplot()
