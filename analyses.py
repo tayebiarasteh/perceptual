@@ -186,8 +186,8 @@ def zeroshot_turing():
             print("\nListener language proficiency effect (native vs non-native):\n")
 
             # Define native and non-native listeners
-            native_listeners = ['EN', 'MS', 'TN', 'LB']
-            non_native_listeners = ['SA', 'TA', 'PP', 'MP']
+            native_listeners = ['EN', 'MS', 'TN', 'LB', 'TG']
+            non_native_listeners = ['SA', 'TA', 'HH', 'MP', 'ML']
 
             # Melt the dataframe to long form
             df_long = df_zero.melt(id_vars='Listener', value_vars=numeric_cols, var_name='Pathology', value_name='Accuracy')
@@ -383,8 +383,8 @@ def fewishot_turing():
             print("\nListener language proficiency effect (native vs non-native):\n")
 
             # Define native and non-native listeners
-            native_listeners = ['EN', 'MS', 'TN', 'LB']
-            non_native_listeners = ['SA', 'TA', 'PP', 'MP']
+            native_listeners = ['EN', 'MS', 'TN', 'LB', 'TG']
+            non_native_listeners = ['SA', 'TA', 'HH', 'MP', 'ML']
 
             # Melt the dataframe to long form
             df_long = df_zero.melt(id_vars='Listener', value_vars=numeric_cols, var_name='Pathology', value_name='Accuracy')
@@ -429,20 +429,20 @@ def male_vs_female_turing_fewshot():
     df_male = pd.read_csv(os.path.join(basedir, 'male - accuracyfewshot.csv')).dropna().set_index("Listener")
     df_female = pd.read_csv(os.path.join(basedir, 'female - accuracyfewshot.csv')).dropna().set_index("Listener")
 
-    # Define pathology/control groups
     patients = ['CLP', 'Dysarthria', 'Dysglossia', 'Dysphonia']
     controls = ['Control adults', 'Control children']
 
-    # Initialize results list
     results = []
 
-    # Compute group-wise paired t-tests
+    # Group-wise paired t-tests with mean & std
     for group in patients + controls:
         t_stat, p_val = ttest_rel(df_male[group], df_female[group])
         results.append({
             "Group": group,
-            "Male Mean": round(df_male[group].mean()),
-            "Female Mean": round(df_female[group].mean()),
+            "Male Mean": round(df_male[group].mean(), 0),
+            "Male Std": round(df_male[group].std(), 0),
+            "Female Mean": round(df_female[group].mean(), 0),
+            "Female Std": round(df_female[group].std(), 0),
             "p-value": round(p_val, 3)
         })
 
@@ -452,17 +452,18 @@ def male_vs_female_turing_fewshot():
     df_male["Control Avg"] = df_male[controls].mean(axis=1)
     df_female["Control Avg"] = df_female[controls].mean(axis=1)
 
-    # Perform t-tests on the averages
+    # T-tests for averages
     for group in ["Patient Avg", "Control Avg"]:
         t_stat, p_val = ttest_rel(df_male[group], df_female[group])
         results.append({
             "Group": group,
-            "Male Mean": round(df_male[group].mean()),
-            "Female Mean": round(df_female[group].mean()),
+            "Male Mean": round(df_male[group].mean(), 0),
+            "Male Std": round(df_male[group].std(), 0),
+            "Female Mean": round(df_female[group].mean(), 0),
+            "Female Std": round(df_female[group].std(), 0),
             "p-value": round(p_val, 3)
         })
 
-    # Convert to DataFrame and save
     df_results = pd.DataFrame(results)
     df_results.to_csv("./fairness/gender_fairness_fewshot.csv", index=False)
 
@@ -475,42 +476,43 @@ def male_vs_female_turing_zeroshot():
     df_male = pd.read_csv(os.path.join(basedir, 'male - accuracyzeroshot.csv')).dropna().set_index("Listener")
     df_female = pd.read_csv(os.path.join(basedir, 'female - accuracyzeroshot.csv')).dropna().set_index("Listener")
 
-    # Define pathology/control groups
     patients = ['CLP', 'Dysarthria', 'Dysglossia', 'Dysphonia']
     controls = ['Control adults', 'Control children']
 
-    # Initialize results list
     results = []
 
-    # Compute group-wise paired t-tests
+    # Individual pathology/control groups
     for group in patients + controls:
         t_stat, p_val = ttest_rel(df_male[group], df_female[group])
         results.append({
             "Group": group,
-            "Male Mean": round(df_male[group].mean()),
-            "Female Mean": round(df_female[group].mean()),
+            "Male Mean": round(df_male[group].mean(), 0),
+            "Male Std": round(df_male[group].std(), 0),
+            "Female Mean": round(df_female[group].mean(), 0),
+            "Female Std": round(df_female[group].std(), 0),
             "p-value": round(p_val, 3)
         })
 
-    # Compute patient and control averages
+    # Add averaged groups (Patient Avg / Control Avg)
     df_male["Patient Avg"] = df_male[patients].mean(axis=1)
     df_female["Patient Avg"] = df_female[patients].mean(axis=1)
     df_male["Control Avg"] = df_male[controls].mean(axis=1)
     df_female["Control Avg"] = df_female[controls].mean(axis=1)
 
-    # Perform t-tests on the averages
     for group in ["Patient Avg", "Control Avg"]:
         t_stat, p_val = ttest_rel(df_male[group], df_female[group])
         results.append({
             "Group": group,
-            "Male Mean": round(df_male[group].mean()),
-            "Female Mean": round(df_female[group].mean()),
+            "Male Mean": round(df_male[group].mean(), 0),
+            "Male Std": round(df_male[group].std(), 0),
+            "Female Mean": round(df_female[group].mean(), 0),
+            "Female Std": round(df_female[group].std(), 0),
             "p-value": round(p_val, 3)
         })
 
-    # Convert to DataFrame and save
     df_results = pd.DataFrame(results)
     df_results.to_csv("./fairness/gender_fairness_zeroshot.csv", index=False)
+
 
 
 
@@ -534,8 +536,8 @@ def quality():
     df_long['Score'] = pd.to_numeric(df_long['Score'], errors='coerce')
     df_long = df_long.dropna(subset=['Score'])
 
-    nonnative_listeners = ['SA', 'TA', 'PP', 'MP']
-    native_listeners = ['EN', 'MS', 'TN', 'LB']
+    native_listeners = ['EN', 'MS', 'TN', 'LB', 'TG']
+    nonnative_listeners = ['SA', 'TA', 'HH', 'MP', 'ML']
 
     results = []
 
@@ -624,8 +626,14 @@ def quality():
 
         for idx, row in df_group.iterrows():
             try:
-                orig_mean = int(row['Original'].split('±')[0].strip())
-                anon_mean = int(row['Anonymized'].split('±')[0].strip())
+                orig_mean, orig_std = [x.strip() for x in row['Original'].split('±')]
+                anon_mean, anon_std = [x.strip() for x in row['Anonymized'].split('±')]
+
+                orig_mean = float(orig_mean)
+                orig_std = float(orig_std)
+
+                anon_mean = float(anon_mean)
+                anon_std = float(anon_std)
             except:
                 continue
 
@@ -634,6 +642,7 @@ def quality():
                 'Pathology': row['Pathology'],
                 'Type': 'Original',
                 'Mean': orig_mean,
+                'Std': orig_std,
                 'p-value': row['p-value']
             })
             bar_data.append({
@@ -641,12 +650,13 @@ def quality():
                 'Pathology': row['Pathology'],
                 'Type': 'Anonymized',
                 'Mean': anon_mean,
+                'Std': anon_std,
                 'p-value': row['p-value']
             })
 
     df_bar = pd.DataFrame(bar_data)
 
-    # Plot layout settings
+    # --- Plot layout settings ---
     fig, axes = plt.subplots(3, 1, figsize=(12, 18), sharex=True, sharey=True)
     groups = ['All', 'Non-native', 'Native']
     titles = ['a) All listeners', 'b) Non-native listeners', 'c) Native listeners']
@@ -656,26 +666,35 @@ def quality():
         df_plot = df_bar[df_bar['Group'] == grp]
         order = df_plot['Pathology'].unique().tolist()
 
-        # Bar plot with narrower bars
-        sns.barplot(data=df_plot, x='Pathology', y='Mean', hue='Type', ax=ax,
-                    palette='Set2', errorbar=None, width=0.6)
+        # Manual bar plotting for control over error bars
+        for j, pathology in enumerate(order):
+            for k, bar_type in enumerate(['Original', 'Anonymized']):
+                bar = df_plot[(df_plot['Pathology'] == pathology) & (df_plot['Type'] == bar_type)]
+                if not bar.empty:
+                    mean = bar['Mean'].values[0]
+                    std = bar['Std'].values[0]
+                    x_pos = j + (k - 0.5) * 0.2
+                    color = sns.color_palette('Set2')[k]
+                    ax.bar(x_pos, mean, yerr=std, width=0.18, label=bar_type if j == 0 else "",
+                           color=color, capsize=5, edgecolor='black')
 
-        # Subfigure title (top-left)
+        # Title, labels, ticks
         ax.set_title(titles[i], loc='left', fontsize=18)
-
-        # Axis formatting
         ax.set_ylabel('Perceived quality normalized [%]', fontsize=16)
         ax.set_ylim(0, 110)
         ax.tick_params(axis='y', labelsize=14)
+        ax.set_xticks(range(len(order)))
         ax.set_xticklabels(order, rotation=30, fontsize=14)
-        ax.legend(fontsize=14, title_fontsize=15)
-
         if i == 2:
             ax.set_xlabel('Speech pathology group', fontsize=16)
         else:
             ax.set_xlabel('')
+        ax.legend(loc="lower right", fontsize=14, title_fontsize=15)
 
-        # Annotate p-values
+        # Despine top and right edges
+        sns.despine(ax=ax, top=True, right=True)
+
+        # Annotate p-values above bars
         for j, pathology in enumerate(order):
             subset = df_plot[(df_plot['Group'] == grp) & (df_plot['Pathology'] == pathology)]
             if subset['p-value'].nunique() == 1:
@@ -683,7 +702,8 @@ def quality():
                 if pd.notna(pval):
                     ptext = f"p < 0.001" if pval < 0.001 else f"p = {pval:.3f}"
                     bar_max = subset['Mean'].max()
-                    ax.text(j, bar_max + 3, ptext, ha='center', fontsize=13)
+                    std_max = subset['Std'].max()
+                    ax.text(j, bar_max + std_max + -3, ptext, ha='left', fontsize=13)
 
     plt.tight_layout()
     plt.savefig("./quality/quality_bars.png", dpi=300)
@@ -756,8 +776,8 @@ def quality():
     #####################################################################################################
     # Native vs. non native
 
-    nonnative_listeners = ['SA', 'TA', 'PP', 'MP']
-    native_listeners = ['EN', 'MS', 'TN', 'LB']
+    native_listeners = ['EN', 'MS', 'TN', 'LB', 'TG']
+    nonnative_listeners = ['SA', 'TA', 'HH', 'MP', 'ML']
 
     pivot_df['Listener'] = pivot_df['Listener'].str.strip()
 
@@ -934,32 +954,34 @@ def correlation():
 
 def scatterplot():
     os.makedirs('correlation', exist_ok=True)
-    # Subplot 1: AUC vs Perceived Quality
+
+    # Subplot 1: EER vs Turing Accuracy
+    a0 = [36.59, 34.26, 38.86, 32.19, 30.24]  # EER [fixed]
+    b0_circle = [91.75, 96.75, 88.625, 84.5, 90.40625] # [change] zeroshot
+    b0_triangle = [91.75, 96.625, 91.125, 88.375, 91.96875] # [change] fewshot
+
+
 
     a1 = [94.86, 98.86, 98.38, 96.37, 96.07]  # AUC anonym [fixed]
-    b1_circle = [56.6666666666667, 60.8333333333333, 58.1666666666667, 59.6666666666667, 58.8333333333333] # [change] quality anonym
+    b1_circle = [55.875, 63.625, 60.625, 64.75, 61.21875] # [change] quality anonym
 
-    a2 = [97.33, 97.73, 9.12, 96.44, 97.05]  # AUC org [fixed]
-    b2_circle = [84.8333333333333, 89.1666666666667, 80.1666666666667, 79.1666666666667, 83.3333333333333] # [change] quality org
-
-    # Subplot 2: EER vs Turing Accuracy
-    a2 = [36.59, 34.26, 38.86, 32.19, 30.24]  # EER [fixed]
-    b2_circle = [92.3333333333333, 97.3333333333333, 89.3333333333333, 87.1666666666667, 91.5416666666667] # [change] zeroshot
-    b2_triangle = [91.1666666666667, 96.6666666666667, 91.5, 89.5, 92.2083333333333] # [change] fewshot
+    a2 = [97.33, 97.73, 99.12, 96.44, 97.05]  # AUC org [fixed]
+    b2_circle = [82.75, 90, 81.625, 82.625, 84.25] # [change] quality org
 
 
-    fig, axs = plt.subplots(1, 3, figsize=(20, 6))
+
+    fig, axs = plt.subplots(1, 3, figsize=(18, 8))
 
     # --- First Subplot ---
-    axs[0].scatter(b2_circle, a2, color='blue', marker='o', label='Zero-shot Turing', s=120)
-    axs[0].scatter(b2_triangle, a2, color='orange', marker='^', label='Few-shot Turing', s=120)
+    axs[0].scatter(b0_circle, a0, color='blue', marker='o', label='Zero-shot Turing', s=120)
+    axs[0].scatter(b0_triangle, a0, color='orange', marker='^', label='Few-shot Turing', s=120)
     axs[0].set_title("a) EER vs. Turing accuracy", fontsize=20, loc='left')
     axs[0].set_xlabel("Turing accuracy [%]", fontsize=18)
     axs[0].set_ylabel("EER [%]", fontsize=18)
     axs[0].tick_params(axis='both', labelsize=16)
     axs[0].legend(fontsize=16)
-    axs[0].set_ylim(30, 40)
-    axs[0].set_xlim(87.5, 98)
+    axs[0].set_ylim(30, 41)
+    axs[0].set_xlim(84, 98)
 
     # --- Second Subplot ---
     axs[1].scatter(b1_circle, a1, color='red', marker='s', label='Anonymized', s=120)  # Red squares
@@ -968,8 +990,8 @@ def scatterplot():
     axs[1].set_ylabel("AUC [%]", fontsize=18)
     axs[1].tick_params(axis='both', labelsize=16)
     # axs[1].legend(fontsize=16)
-    axs[1].set_ylim(94, 100)
-    axs[1].set_xlim(55.5, 61)
+    axs[1].set_ylim(94, 99)
+    axs[1].set_xlim(54, 65)
 
     # --- Third Subplot ---
     axs[2].scatter(b2_circle, a2, color='black', marker='*', label='Original', s=120)  # Red squares
@@ -978,8 +1000,8 @@ def scatterplot():
     axs[2].set_ylabel("AUC [%]", fontsize=18)
     axs[2].tick_params(axis='both', labelsize=16)
     # axs[2].legend(fontsize=16)
-    axs[2].set_ylim(30, 40)
-    axs[2].set_xlim(85.5, 98)
+    axs[2].set_ylim(94, 100)
+    axs[2].set_xlim(80, 91)
 
 
     plt.tight_layout()
@@ -1016,6 +1038,6 @@ if __name__ == '__main__':
     # fewishot_turing()
     # boxplot_appender()
     # male_vs_female_turing_fewshot()
-    male_vs_female_turing_zeroshot()
+    # male_vs_female_turing_zeroshot()
     # quality()
-    # scatterplot()
+    scatterplot()
