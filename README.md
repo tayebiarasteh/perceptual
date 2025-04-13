@@ -38,16 +38,15 @@ Our source code for training and evaluation of the deep neural networks, speech 
 Structure of the **PathologyAnonym** project:
 
 1. Everything can be run from *./PathologyAnonym_main.py*. 
-* The data preprocessing parameters, directories, hyper-parameters, and model parameters can be modified from *./configs/config.yaml*.
+* The data preprocessing parameters, directories, hyper-parameters, and model parameters can be modified from *./PathologyAnonym_main/configs/config.yaml*.
 * Also, you should first choose an `experiment` name (if you are starting a new experiment) for training, in which all the evaluation and loss value statistics, tensorboard events, and model & checkpoints will be stored. Furthermore, a `config.yaml` file will be created for each experiment storing all the information needed.
 * For testing, just load the experiment which its model you need.
 
 2. The rest of the files:
-* *./data/* directory contains all the data preprocessing, and loading files.
-* *./mcAdams_Anonym/* directory contains all the files for anonymization using McAdams coefficient method.
-* *./Pitch_Anonym/* directory contains all the files for anonymization using training-based randomized pitch shift + HiFi-GAN method.
-* *./PathologyAnonym_Train_Valid.py* contains the training and validation processes.
-* *./pathanonym_Prediction.py* all the prediction and testing processes.
+* *./PathologyAnonym_main/data/* directory contains all the data preprocessing, and loading files.
+* *./PathologyAnonym_main/mcAdams_Anonym/* directory contains all the files for anonymization using McAdams coefficient method.
+* *./PathologyAnonym_main/PathologyAnonym_Train_Valid.py* contains the training and validation processes.
+* *./PathologyAnonym_main/pathanonym_Prediction.py* all the prediction and testing processes.
 * For EER calculation you should use either of the anonymization methods' folders based on your need.
 
 
