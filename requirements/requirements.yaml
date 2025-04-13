@@ -1,0 +1,29 @@
+name: perceptual
+channels:
+  - defaults
+  - pytorch
+  - nvidia
+  - conda-forge
+dependencies:
+  - python=3.10
+  - pytorch::pytorch=2.1.0
+  - pytorch::pytorch-cuda
+  - pytorch::torchvision
+  - omegaconf
+  - torchmetrics
+  - fvcore
+  - iopath
+  - matplotlib 
+  - tqdm
+  - tensorboardx
+  - pandas=1.4.3
+  - scikit-learn
+  - jupyter
+  - numpy=1.22
+  - pip
+  - pip:
+    - torchio
+    - soundfile
+    - tensorboard
+    - webrtcvad
+    - librosa

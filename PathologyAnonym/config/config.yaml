@@ -1,0 +1,29 @@
+preprocessing:
+  vad_window_length: 30 # window length of 30 ms
+  vad_moving_average_width: 8
+  vad_max_silence_length: 6 # a maximum silence length of 6 ms
+  audio_norm_target_dBFS: -30 # pruning the intervals with sound pressures below 30 db
+  sr: 16000 # sampling rate
+  nfft: 512 # should be power of 2; here we have 16000* 0.025 = 400 samples per frame, so at least should be 512
+  window: 0.025 # each frame is 25 ms = window size
+  hop: 0.01 # 10 ms step size to move the window
+  nmels: 80 # total number of mel filters
+  tisv_frame: 180 # min frame number; each frame is 400 samples; 180 * 400 = 72k samples; 72k / 16k = 4.5 s is the minimum length of one full training utterance
+Network:
+  lr: 5e-5 # learning rate for combination of nordwind and plakss
+  M: 8 # number of utterances per speaker; Must be even because we use the half for enrolment
+  weight_decay: 0
+  amsgrad: False
+network_output_path: network_data/
+output_data_path: output_data/
+tb_logs_path: tensor_board_logs/
+stat_log_path: stat_logs/
+checkpoint_name: checkpoint.tar
+trained_model_name: trained_model.pth
+
+# changeable items:
+file_path: /PATH/
+target_dir: /PATH/
+display_stats_freq: 1  # better to be 1 as it's epoch based; This also shows number of iterations after which we print the metrics
+num_epochs: 100 # total number of iterations of training
+num_EER_repetitions_for_valid: 10 # important for TISV GE2E to average over some iterations to decide for better validation
