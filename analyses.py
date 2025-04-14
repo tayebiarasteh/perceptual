@@ -13,7 +13,7 @@ import numpy as np
 from statsmodels.stats.anova import AnovaRM
 import seaborn as sns
 from itertools import combinations
-from scipy.stats import f_oneway, ttest_rel, ttest_ind, pearsonr, spearmanr
+from scipy.stats import f_oneway, ttest_rel, ttest_ind, pearsonr, spearmanr, mannwhitneyu, shapiro, wilcoxon
 from statsmodels.stats.multitest import multipletests
 from contextlib import redirect_stdout
 import matplotlib.image as mpimg
@@ -150,7 +150,9 @@ def zeroshot_turing():
                         vals1 = df_melted[df_melted['Pathology'] == g1].set_index('Listener').loc[listeners]['Accuracy']
                         vals2 = df_melted[df_melted['Pathology'] == g2].set_index('Listener').loc[listeners]['Accuracy']
                         t_stat, p_val = ttest_rel(vals1, vals2)
+                        # t_stat, p_val = wilcoxon(vals1, vals2)
                         pairwise_results_fdr.append((g1, g2, p_val))
+                        # print(shapiro(vals1), shapiro(vals1))
 
             # FDR correction
             raw_pvals_fdr = [res[2] for res in pairwise_results_fdr]
@@ -166,8 +168,6 @@ def zeroshot_turing():
 
             # Round matrix for presentation
             fdr_matrix_rounded = fdr_matrix.round(3)
-            # print("\nFDR-Corrected Pairwise P-values (6x6):")
-            # print(fdr_matrix_rounded)
 
             # Generate natural language summary
             if sig_comparisons_fdr:
@@ -207,23 +207,26 @@ def zeroshot_turing():
             non_native_sd_all = round(non_native_all.std())
 
             # Independent t-test
-            t_stat_all, p_val_all = ttest_ind(native_all, non_native_all)
+            # t_stat_all, p_val_all = ttest_ind(native_all, non_native_all)
+            t_stat_all, p_val_all = mannwhitneyu(native_all, non_native_all)
+            print('native shapiro:', shapiro(native_all))
+            print('non-native shapiro:', shapiro(non_native_all))
 
             print(f"Overall \nNative: {native_avg_all} ± {native_sd_all}% vs. Non-native: {non_native_avg_all} ± {non_native_sd_all}% (t = {t_stat_all:.2f}, p = {p_val_all:.4f})\n")
 
-            for pathology in numeric_cols:
-                native_scores = df_zero[df_zero['Listener'].isin(native_listeners)][pathology]
-                non_native_scores = df_zero[df_zero['Listener'].isin(non_native_listeners)][pathology]
-
-                native_avg = round(native_scores.mean())
-                native_sd = round(native_scores.std())
-                non_native_avg = round(non_native_scores.mean())
-                non_native_sd = round(non_native_scores.std())
-
-                t_stat, p_val = ttest_ind(native_scores, non_native_scores)
-
-                print(f"{pathology}:")
-                print(f"  Native: {native_avg} ± {native_sd}% vs. Non-native: {non_native_avg} ± {non_native_sd}% (t = {t_stat:.2f}, p = {p_val:.3f})\n")
+            # for pathology in numeric_cols:
+            #     native_scores = df_zero[df_zero['Listener'].isin(native_listeners)][pathology]
+            #     non_native_scores = df_zero[df_zero['Listener'].isin(non_native_listeners)][pathology]
+            #
+            #     native_avg = round(native_scores.mean())
+            #     native_sd = round(native_scores.std())
+            #     non_native_avg = round(non_native_scores.mean())
+            #     non_native_sd = round(non_native_scores.std())
+            #
+            #     t_stat, p_val = ttest_ind(native_scores, non_native_scores)
+            #
+            #     print(f"{pathology}:")
+            #     print(f"  Native: {native_avg} ± {native_sd}% vs. Non-native: {non_native_avg} ± {non_native_sd}% (t = {t_stat:.2f}, p = {p_val:.3f})\n")
 
 
 
@@ -403,24 +406,28 @@ def fewishot_turing():
             non_native_avg_all = round(non_native_all.mean())
             non_native_sd_all = round(non_native_all.std())
 
-            # Independent t-test
-            t_stat_all, p_val_all = ttest_ind(native_all, non_native_all)
+            # Independent test
+            # t_stat_all, p_val_all = ttest_ind(native_all, non_native_all)
+            t_stat_all, p_val_all = mannwhitneyu(native_all, non_native_all)
+            print('native shapiro:', shapiro(native_all))
+            print('non-native shapiro:', shapiro(non_native_all))
 
-            print(f"Overall \nNative: {native_avg_all} ± {native_sd_all}% vs. Non-native: {non_native_avg_all} ± {non_native_sd_all}% (t = {t_stat_all:.2f}, p = {p_val_all:.3f})\n")
+            print(f"Overall \nNative: {native_avg_all} ± {native_sd_all}% vs. Non-native: {non_native_avg_all} ± {non_native_sd_all}% (t = {t_stat_all:.2f}, p = {p_val_all:.4f})\n")
+            print(f"Overall \nNative: {native_avg_all} ± {native_sd_all}% vs. Non-native: {non_native_avg_all} ± {non_native_sd_all}% (t = {t_stat_all:.2f}, p = {p_val_all:.4f})\n")
 
-            for pathology in numeric_cols:
-                native_scores = df_zero[df_zero['Listener'].isin(native_listeners)][pathology]
-                non_native_scores = df_zero[df_zero['Listener'].isin(non_native_listeners)][pathology]
-
-                native_avg = round(native_scores.mean())
-                native_sd = round(native_scores.std())
-                non_native_avg = round(non_native_scores.mean())
-                non_native_sd = round(non_native_scores.std())
-
-                t_stat, p_val = ttest_ind(native_scores, non_native_scores)
-
-                print(f"{pathology}:")
-                print(f"  Native: {native_avg} ± {native_sd}% vs. Non-native: {non_native_avg} ± {non_native_sd}% (t = {t_stat:.2f}, p = {p_val:.3f})\n")
+            # for pathology in numeric_cols:
+            #     native_scores = df_zero[df_zero['Listener'].isin(native_listeners)][pathology]
+            #     non_native_scores = df_zero[df_zero['Listener'].isin(non_native_listeners)][pathology]
+            #
+            #     native_avg = round(native_scores.mean())
+            #     native_sd = round(native_scores.std())
+            #     non_native_avg = round(non_native_scores.mean())
+            #     non_native_sd = round(non_native_scores.std())
+            #
+            #     t_stat, p_val = ttest_ind(native_scores, non_native_scores)
+            #
+            #     print(f"{pathology}:")
+            #     print(f"  Native: {native_avg} ± {native_sd}% vs. Non-native: {non_native_avg} ± {non_native_sd}% (t = {t_stat:.2f}, p = {p_val:.3f})\n")
 
 
 
@@ -432,42 +439,76 @@ def male_vs_female_turing_fewshot():
 
     patients = ['CLP', 'Dysarthria', 'Dysglossia', 'Dysphonia']
     controls = ['Control adults', 'Control children']
+    all_groups = patients + controls
+
+    normality_results = []
+
+    # Run Shapiro-Wilk test for each group
+    for group in all_groups:
+        male_vals = df_male[group]
+        female_vals = df_female[group]
+
+        # Shapiro-Wilk test
+        stat_male, p_male = shapiro(male_vals)
+        stat_female, p_female = shapiro(female_vals)
+
+        normality_results.append({
+            "Group": group,
+            "Male Shapiro-W": round(stat_male, 3),
+            "Male p-value": round(p_male, 4),
+            "Female Shapiro-W": round(stat_female, 3),
+            "Female p-value": round(p_female, 4)
+        })
+
+    df_normality = pd.DataFrame(normality_results)
+    df_normality.to_csv("./fairness/normality_gender_fewshot.csv", index=False)
+
+    patients = ['CLP', 'Dysarthria', 'Dysglossia', 'Dysphonia']
+    controls = ['Control adults', 'Control children']
 
     results = []
 
-    # Group-wise paired t-tests with mean & std
+    # Individual groups (Mann-Whitney U test)
     for group in patients + controls:
-        t_stat, p_val = ttest_rel(df_male[group], df_female[group])
+        u_stat, p_val = mannwhitneyu(df_male[group], df_female[group], alternative='two-sided')
         results.append({
             "Group": group,
             "Male Mean": round(df_male[group].mean(), 0),
             "Male Std": round(df_male[group].std(), 0),
             "Female Mean": round(df_female[group].mean(), 0),
             "Female Std": round(df_female[group].std(), 0),
-            "p-value": round(p_val, 3)
+            "p-value": p_val
         })
 
-    # Compute patient and control averages
+    # Add patient and control averages
     df_male["Patient Avg"] = df_male[patients].mean(axis=1)
     df_female["Patient Avg"] = df_female[patients].mean(axis=1)
     df_male["Control Avg"] = df_male[controls].mean(axis=1)
     df_female["Control Avg"] = df_female[controls].mean(axis=1)
 
-    # T-tests for averages
+    # Group averages (Mann-Whitney U test)
     for group in ["Patient Avg", "Control Avg"]:
-        t_stat, p_val = ttest_rel(df_male[group], df_female[group])
+        u_stat, p_val = mannwhitneyu(df_male[group], df_female[group], alternative='two-sided')
         results.append({
             "Group": group,
             "Male Mean": round(df_male[group].mean(), 0),
             "Male Std": round(df_male[group].std(), 0),
             "Female Mean": round(df_female[group].mean(), 0),
             "Female Std": round(df_female[group].std(), 0),
-            "p-value": round(p_val, 3)
+            "p-value": p_val
         })
 
     df_results = pd.DataFrame(results)
-    df_results.to_csv("./fairness/gender_fairness_fewshot.csv", index=False)
 
+    # FDR correction (only for individual groups, not aggregated ones)
+    raw_pvals = df_results.loc[df_results['Group'].isin(patients + controls), 'p-value']
+    _, corrected_pvals, _, _ = multipletests(raw_pvals, method='fdr_bh')
+
+    # Update corrected p-values
+    df_results.loc[df_results['Group'].isin(patients + controls), 'p-value'] = corrected_pvals
+    df_results['p-value'] = df_results['p-value'].round(3)
+
+    df_results.to_csv("./fairness/gender_fairness_fewshot.csv", index=False)
 
 
 
@@ -479,39 +520,75 @@ def male_vs_female_turing_zeroshot():
 
     patients = ['CLP', 'Dysarthria', 'Dysglossia', 'Dysphonia']
     controls = ['Control adults', 'Control children']
+    all_groups = patients + controls
+
+    normality_results = []
+
+    # Run Shapiro-Wilk test for each group
+    for group in all_groups:
+        male_vals = df_male[group]
+        female_vals = df_female[group]
+
+        # Shapiro-Wilk test
+        stat_male, p_male = shapiro(male_vals)
+        stat_female, p_female = shapiro(female_vals)
+
+        normality_results.append({
+            "Group": group,
+            "Male Shapiro-W": round(stat_male, 3),
+            "Male p-value": round(p_male, 4),
+            "Female Shapiro-W": round(stat_female, 3),
+            "Female p-value": round(p_female, 4)
+        })
+
+    df_normality = pd.DataFrame(normality_results)
+    df_normality.to_csv("./fairness/normality_gender_zeroshot.csv", index=False)
+
+    patients = ['CLP', 'Dysarthria', 'Dysglossia', 'Dysphonia']
+    controls = ['Control adults', 'Control children']
 
     results = []
 
-    # Individual pathology/control groups
+    # Individual groups (Mann-Whitney U test)
     for group in patients + controls:
-        t_stat, p_val = ttest_rel(df_male[group], df_female[group])
+        u_stat, p_val = mannwhitneyu(df_male[group], df_female[group], alternative='two-sided')
         results.append({
             "Group": group,
             "Male Mean": round(df_male[group].mean(), 0),
             "Male Std": round(df_male[group].std(), 0),
             "Female Mean": round(df_female[group].mean(), 0),
             "Female Std": round(df_female[group].std(), 0),
-            "p-value": round(p_val, 3)
+            "p-value": p_val
         })
 
-    # Add averaged groups (Patient Avg / Control Avg)
+    # Add patient and control averages
     df_male["Patient Avg"] = df_male[patients].mean(axis=1)
     df_female["Patient Avg"] = df_female[patients].mean(axis=1)
     df_male["Control Avg"] = df_male[controls].mean(axis=1)
     df_female["Control Avg"] = df_female[controls].mean(axis=1)
 
+    # Group averages (Mann-Whitney U test)
     for group in ["Patient Avg", "Control Avg"]:
-        t_stat, p_val = ttest_rel(df_male[group], df_female[group])
+        u_stat, p_val = mannwhitneyu(df_male[group], df_female[group], alternative='two-sided')
         results.append({
             "Group": group,
             "Male Mean": round(df_male[group].mean(), 0),
             "Male Std": round(df_male[group].std(), 0),
             "Female Mean": round(df_female[group].mean(), 0),
             "Female Std": round(df_female[group].std(), 0),
-            "p-value": round(p_val, 3)
+            "p-value": p_val
         })
 
     df_results = pd.DataFrame(results)
+
+    # FDR correction (only for individual groups, not aggregated ones)
+    raw_pvals = df_results.loc[df_results['Group'].isin(patients + controls), 'p-value']
+    _, corrected_pvals, _, _ = multipletests(raw_pvals, method='fdr_bh')
+
+    # Update corrected p-values
+    df_results.loc[df_results['Group'].isin(patients + controls), 'p-value'] = corrected_pvals
+    df_results['p-value'] = df_results['p-value'].round(3)
+
     df_results.to_csv("./fairness/gender_fairness_zeroshot.csv", index=False)
 
 
@@ -748,103 +825,68 @@ def quality():
 
     print(f"ANOVA result: F = {f_stat:.2f}, p = {p_val_anova:.3f}")
 
-    # Pairwise post-hoc comparisons
-    pathologies = sorted(pivot_df['Pathology'].unique())
-    pairwise_results = []
-    for i in range(len(pathologies)):
-        for j in range(i + 1, len(pathologies)):
-            g1 = pathologies[i]
-            g2 = pathologies[j]
-            vals1 = pivot_df[pivot_df['Pathology'] == g1]['Degradation']
-            vals2 = pivot_df[pivot_df['Pathology'] == g2]['Degradation']
-            t_stat, p_val = ttest_rel(vals1, vals2)
-            pairwise_results.append((g1, g2, p_val))
+    # Post-hoc comparisons for original and anonymized separately
+    for score_type in ['Original', 'Anonymized']:
+        pathologies = sorted(pivot_df['Pathology'].unique())
+        pairwise_results = []
+        for i in range(len(pathologies)):
+            for j in range(i + 1, len(pathologies)):
+                g1 = pathologies[i]
+                g2 = pathologies[j]
+                vals1 = pivot_df[pivot_df['Pathology'] == g1][score_type]
+                vals2 = pivot_df[pivot_df['Pathology'] == g2][score_type]
+                t_stat, p_val = ttest_rel(vals1, vals2)
+                pairwise_results.append((g1, g2, p_val))
 
-    # FDR correction
-    raw_pvals = [res[2] for res in pairwise_results]
-    _, corrected_pvals, _, _ = multipletests(raw_pvals, method='fdr_bh')
+        raw_pvals = [res[2] for res in pairwise_results]
+        _, corrected_pvals, _, _ = multipletests(raw_pvals, method='fdr_bh')
 
-    # Build 6x6 matrix
-    pval_matrix = pd.DataFrame(np.ones((len(pathologies), len(pathologies))), index=pathologies, columns=pathologies)
+        # Build matrix
+        pval_matrix = pd.DataFrame(np.ones((len(pathologies), len(pathologies))), index=pathologies,
+                                   columns=pathologies)
+        for (group1, group2, _), corr_p in zip(pairwise_results, corrected_pvals):
+            pval_matrix.loc[group1, group2] = corr_p
+            pval_matrix.loc[group2, group1] = corr_p
+        pval_matrix = pval_matrix.round(3)
 
-    for (group1, group2, _), corr_p in zip(pairwise_results, corrected_pvals):
-        pval_matrix.loc[group1, group2] = corr_p
-        pval_matrix.loc[group2, group1] = corr_p
+        # Save to file
+        suffix = 'original' if score_type == 'Original' else 'anonymized'
+        pval_matrix.to_csv(f"./quality/quality_posthoc_{suffix}.csv")
 
-    pval_matrix = pval_matrix.round(3)
-
-    pval_matrix.to_csv("./quality/quality_degradation_posthoc_pvalues.csv")
     #####################################################################################################
     # Native vs. non native
 
     native_listeners = ['EN', 'MS', 'TN', 'LB', 'TG']
     nonnative_listeners = ['SA', 'TA', 'HH', 'MP', 'ML']
-
     pivot_df['Listener'] = pivot_df['Listener'].str.strip()
 
     existing_nonnative = [l for l in nonnative_listeners if l in pivot_df['Listener'].unique()]
     existing_native = [l for l in native_listeners if l in pivot_df['Listener'].unique()]
 
-    # Aggregate degradation per listener per pathology
-    agg_df = pivot_df.groupby(['Listener', 'Pathology'])['Degradation'].mean().reset_index()
+    os.makedirs('./quality', exist_ok=True)
 
-    # Collect comparison results
-    results = []
+    summary_rows = []
 
-    # Per-pathology comparisons
-    for pathology in agg_df['Pathology'].unique():
-        subset = agg_df[agg_df['Pathology'] == pathology]
+    for score_type in ['Original', 'Anonymized']:
+        native_all = pivot_df[pivot_df['Listener'].isin(existing_native)][score_type]
+        nonnative_all = pivot_df[pivot_df['Listener'].isin(existing_nonnative)][score_type]
 
-        native_vals = subset[subset['Listener'].isin(existing_native)]['Degradation']
-        nonnative_vals = subset[subset['Listener'].isin(existing_nonnative)]['Degradation']
+        t_stat_all, p_val_all = ttest_ind(native_all, nonnative_all)
 
-        t_stat, p_val = ttest_ind(native_vals, nonnative_vals)
-        native_mean = round(native_vals.mean())
-        native_std = round(native_vals.std())
-        nonnative_mean = round(nonnative_vals.mean())
-        nonnative_std = round(nonnative_vals.std())
+        native_all_mean = round(native_all.mean())
+        native_all_std = round(native_all.std())
+        nonnative_all_mean = round(nonnative_all.mean())
+        nonnative_all_std = round(nonnative_all.std())
 
-        results.append({
-            "Pathology": pathology,
-            "Native": f"{native_mean} ± {native_std}",
-            "Non-native": f"{nonnative_mean} ± {nonnative_std}",
-            "p-value": p_val  # raw for now
+        summary_rows.append({
+            "Score Type": score_type,
+            "Native": f"{native_all_mean} ± {native_all_std}",
+            "Non-native": f"{nonnative_all_mean} ± {nonnative_all_std}",
+            "p-value": round(p_val_all, 3)
         })
 
-    # Overall comparison across all groups
-    native_all = agg_df[agg_df['Listener'].isin(existing_native)]['Degradation']
-    nonnative_all = agg_df[agg_df['Listener'].isin(existing_nonnative)]['Degradation']
-
-    t_stat_all, p_val_all = ttest_ind(native_all, nonnative_all)
-    native_all_mean = round(native_all.mean())
-    native_all_std = round(native_all.std())
-    nonnative_all_mean = round(nonnative_all.mean())
-    nonnative_all_std = round(nonnative_all.std())
-
-    results.append({
-        "Pathology": "Overall",
-        "Native": f"{native_all_mean} ± {native_all_std}",
-        "Non-native": f"{nonnative_all_mean} ± {nonnative_all_std}",
-        "p-value": p_val_all  # uncorrected
-    })
-
-    # Apply FDR correction to the first 6 pathology p-values
-    results_pathologies = results[:-1]
-    results_overall = results[-1]
-
-    raw_pvals = [r['p-value'] for r in results_pathologies]
-    _, corrected_pvals, _, _ = multipletests(raw_pvals, method='fdr_bh')
-
-    # Replace p-values with corrected ones (rounded to 3 decimals)
-    for i, corr_p in enumerate(corrected_pvals):
-        results_pathologies[i]['p-value'] = round(corr_p, 3)
-
-    results_overall['p-value'] = round(results_overall['p-value'], 3)
-
-    df_final = pd.DataFrame(results_pathologies + [results_overall])
-
-    df_final.to_csv("./quality/quality_degradation_native_vs_nonnative.csv", index=False)
-
+    df_summary = pd.DataFrame(summary_rows)
+    df_summary.to_csv("./quality/quality_native_vs_nonnative.csv", index=False)
 
 
 def correlation():
