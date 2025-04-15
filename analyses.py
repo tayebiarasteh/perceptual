@@ -1185,7 +1185,7 @@ def scatterplot():
     # axs[2].set_ylim(int(min(a2)-1), 100)
     axs[2].set_ylim(95.49, 100)
     # axs[2].set_xlim(int(min(b2_circle)-1), int(max(b2_circle) +2))
-    axs[2].set_xlim(74.7, 96)
+    axs[2].set_xlim(74.7, 95)
 
 
     plt.tight_layout()
@@ -1295,7 +1295,7 @@ def scatterplot():
     # axs[2].set_ylim(int(min(a2)-1), 100)
     axs[2].set_ylim(95.49, 100)
     # axs[2].set_xlim(int(min(b2_circle)-1), int(max(b2_circle) +2))
-    axs[2].set_xlim(74.7, 96)
+    axs[2].set_xlim(74.7, 95)
 
 
     plt.tight_layout()
@@ -1405,7 +1405,7 @@ def scatterplot():
     # axs[2].set_ylim(int(min(a2)-1), 100)
     axs[2].set_ylim(95.49, 100)
     # axs[2].set_xlim(int(min(b2_circle)-1), int(max(b2_circle) +2))
-    axs[2].set_xlim(74.7, 96)
+    axs[2].set_xlim(74.7, 95)
 
 
     plt.tight_layout()
@@ -1466,14 +1466,3 @@ def boxplot_appender():
     plt.savefig("./zero_shot/boxplot.png")
 
 
-
-
-if __name__ == '__main__':
-    zeroshot_turing()
-    fewishot_turing()
-    boxplot_appender()
-    male_vs_female_turing_fewshot()
-    male_vs_female_turing_zeroshot()
-    quality()
-    correlation()
-    scatterplot()
