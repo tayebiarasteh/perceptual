@@ -1,11 +1,11 @@
-# Automatic anonymization of pathological speech: a comprehensive analysis of perceptual integrity
+# Perceptual consequences of automatic anonymization in pathological speech
 
 
 
 Overview
 ------
 
-* This is the official repository of the paper [**Automatic anonymization of pathological speech: a comprehensive analysis of perceptual integrity**](TODO).
+* This is the official repository of the paper [**Perceptual consequences of automatic anonymization in pathological speech**](TODO).
 
 Abstract
 ------
@@ -56,7 +56,7 @@ Structure of the **PathologyAnonym** project:
 
 #### 1:
 
-Tayebi Arasteh S, et al. *Automatic anonymization of pathological speech: a comprehensive analysis of perceptual integrity*. ArXiv (2025).
+Tayebi Arasteh S, et al. *Perceptual consequences of automatic anonymization in pathological speech*. ArXiv (2025).
 
 
 ### BibTex
