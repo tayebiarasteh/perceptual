@@ -54,9 +54,9 @@ Structure of the **PathologyAnonym** project:
 ------
 ### In case you use this repository, please cite the original papers:
 
-#### 1:
+### 1:
 
-Tayebi Arasteh S, et al. *Perceptual consequences of automatic anonymization in pathological speech*. ArXiv (2025).
+Tayebi Arasteh S, et al. *Perceptual implications of automatic anonymization in pathological speech*. ArXiv (2025).
 
 
 ### BibTex
@@ -66,7 +66,7 @@ Tayebi Arasteh S, et al. *Perceptual consequences of automatic anonymization in 
     }
 
 
-#### 2:
+### 2:
 
 Tayebi Arasteh S, Arias-Vergara T, Pérez-Toro P, et al. *Addressing challenges in speaker anonymization to maintain utility while ensuring privacy of pathological speech*. Communications Medicine, 4, 182 (2024). DOI: https://doi.org/10.1038/s43856-024-00609-5
 
@@ -85,7 +85,7 @@ Tayebi Arasteh S, Arias-Vergara T, Pérez-Toro P, et al. *Addressing challenges 
     }
 
 
-#### 3:
+### 3:
 
 Tayebi Arasteh S, Weise T, Schuster M, et al. *The effect of speech pathology on automatic speaker verification: a large-scale study*. Scientific Reports (2023) 13:20476. https://doi.org/10.1038/s41598-023-47711-7
 
