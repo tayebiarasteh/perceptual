@@ -1,11 +1,11 @@
-# Perceptual consequences of automatic anonymization in pathological speech
+# Perceptual implications of automatic anonymization in pathological speech
 
 
 
 Overview
 ------
 
-* This is the official repository of the paper [**Perceptual consequences of automatic anonymization in pathological speech**](TODO).
+* This is the official repository of the paper [**Perceptual implications of automatic anonymization in pathological speech**](TODO).
 
 Abstract
 ------
