@@ -29,6 +29,65 @@ warnings.filterwarnings('ignore')
 
 
 
+
+def expertise_zeroshot_turing():
+    os.makedirs('zero_shot', exist_ok=True)
+
+    with open("./zero_shot/expert_turing_zeroshot.txt", "w") as f:
+        with redirect_stdout(f):
+
+            print('\t\tResults for Zero-shot case\n\n')
+
+            df_zero = pd.read_csv(os.path.join(basedir, 'Perceptual speech anonym - accuracyzeroshot.csv'))
+
+            df_zero = df_zero.dropna().copy()
+
+            numeric_cols = df_zero.columns.drop('Listener')
+
+            # Compute column-wise mean and std (per pathology group)
+            column_stats = df_zero.agg(['mean', 'std']).round(0).astype(int).T
+            column_stats = column_stats.rename(columns={'mean': 'Mean (%)', 'std': 'SD (%)'})
+
+            # Compute row-wise mean and std (per listener), excluding non-numeric columns
+            df_zero['Mean (%)'] = df_zero.drop(columns=['Listener']).mean(axis=1).round(0).astype(int)
+            df_zero['SD (%)'] = df_zero.drop(columns=['Listener']).std(axis=1).round(0).astype(int)
+
+
+            ####################################################################################################
+            # Native vs Non-Native Listener Comparison
+            print('\n####################################################################################################\n')
+            print("\nListener language proficiency effect (expert vs non-expert):\n")
+
+            # Define native and non-native listeners
+            native_listeners = ['EN', 'MS', 'TN', 'TA', 'HH']
+            non_native_listeners = ['SA', 'LB', 'TG', 'MP', 'ML']
+
+            # Melt the dataframe to long form
+            df_long = df_zero.melt(id_vars='Listener', value_vars=numeric_cols, var_name='Pathology', value_name='Accuracy')
+
+            # Label listener types
+            df_long['Language Group'] = df_long['Listener'].apply(lambda x: 'Native' if x in native_listeners else 'Non-native')
+
+            # Split groups
+            native_all = df_long[df_long['Language Group'] == 'Native']['Accuracy']
+            non_native_all = df_long[df_long['Language Group'] == 'Non-native']['Accuracy']
+
+            # Stats
+            native_avg_all = round(native_all.mean())
+            native_sd_all = round(native_all.std())
+            non_native_avg_all = round(non_native_all.mean())
+            non_native_sd_all = round(non_native_all.std())
+
+            # Independent t-test
+            # t_stat_all, p_val_all = ttest_ind(native_all, non_native_all)
+            t_stat_all, p_val_all = mannwhitneyu(native_all, non_native_all)
+            print('expert shapiro:', shapiro(native_all))
+            print('non-expert shapiro:', shapiro(non_native_all))
+
+            print(f"Overall \nExpert: {native_avg_all} ± {native_sd_all}% vs. Non-expert: {non_native_avg_all} ± {non_native_sd_all}% (t = {t_stat_all:.2f}, p = {p_val_all:.4f})\n")
+
+
+
 def zeroshot_turing():
     os.makedirs('zero_shot', exist_ok=True)
 
@@ -227,6 +286,63 @@ def zeroshot_turing():
             #
             #     print(f"{pathology}:")
             #     print(f"  Native: {native_avg} ± {native_sd}% vs. Non-native: {non_native_avg} ± {non_native_sd}% (t = {t_stat:.2f}, p = {p_val:.3f})\n")
+
+
+
+def expertise_fewshot_turing():
+    os.makedirs('few_shot', exist_ok=True)
+
+    with open("./few_shot/expert_turing_fewshot.txt", "w") as f:
+        with redirect_stdout(f):
+
+            print('\t\tResults for Few-shot case\n\n')
+
+            df_zero = pd.read_csv(os.path.join(basedir, 'Perceptual speech anonym - accuracyfewshot.csv'))
+
+            df_zero = df_zero.dropna().copy()
+
+            numeric_cols = df_zero.columns.drop('Listener')
+
+            # Compute column-wise mean and std (per pathology group)
+            column_stats = df_zero.agg(['mean', 'std']).round(0).astype(int).T
+            column_stats = column_stats.rename(columns={'mean': 'Mean (%)', 'std': 'SD (%)'})
+
+            # Compute row-wise mean and std (per listener), excluding non-numeric columns
+            df_zero['Mean (%)'] = df_zero.drop(columns=['Listener']).mean(axis=1).round(0).astype(int)
+            df_zero['SD (%)'] = df_zero.drop(columns=['Listener']).std(axis=1).round(0).astype(int)
+
+            ####################################################################################################
+            # Native vs Non-Native Listener Comparison
+            print('\n####################################################################################################\n')
+            print("\nListener language proficiency effect (expert vs non-expert):\n")
+
+            # Define native and non-native listeners
+            native_listeners = ['EN', 'MS', 'TN', 'TA', 'HH']
+            non_native_listeners = ['SA', 'LB', 'TG', 'MP', 'ML']
+
+            # Melt the dataframe to long form
+            df_long = df_zero.melt(id_vars='Listener', value_vars=numeric_cols, var_name='Pathology', value_name='Accuracy')
+
+            # Label listener types
+            df_long['Language Group'] = df_long['Listener'].apply(lambda x: 'Native' if x in native_listeners else 'Non-native')
+
+            # Split groups
+            native_all = df_long[df_long['Language Group'] == 'Native']['Accuracy']
+            non_native_all = df_long[df_long['Language Group'] == 'Non-native']['Accuracy']
+
+            # Stats
+            native_avg_all = round(native_all.mean())
+            native_sd_all = round(native_all.std())
+            non_native_avg_all = round(non_native_all.mean())
+            non_native_sd_all = round(non_native_all.std())
+
+            # Independent test
+            # t_stat_all, p_val_all = ttest_ind(native_all, non_native_all)
+            t_stat_all, p_val_all = mannwhitneyu(native_all, non_native_all)
+            print('expert shapiro:', shapiro(native_all))
+            print('non-expert shapiro:', shapiro(non_native_all))
+
+            print(f"Overall \nExpert: {native_avg_all} ± {native_sd_all}% vs. Non-expert: {non_native_avg_all} ± {non_native_sd_all}% (t = {t_stat_all:.2f}, p = {p_val_all:.4f})\n")
 
 
 
@@ -590,6 +706,289 @@ def male_vs_female_turing_zeroshot():
     df_results['p-value'] = df_results['p-value'].round(3)
 
     df_results.to_csv("./fairness/gender_fairness_zeroshot.csv", index=False)
+
+
+def expertise_quality():
+    os.makedirs('quality', exist_ok=True)
+
+    df_raw = pd.read_csv(os.path.join(basedir, 'Perceptual speech anonym - Quality Percentage.csv'), header=None)
+
+    headers_1 = pd.Series(df_raw.iloc[0, 1:]).fillna(method='ffill').astype(str)
+    headers_2 = pd.Series(df_raw.iloc[1, 1:]).fillna(method='ffill').astype(str)
+    columns = [f"{p.strip()}_{t.strip()}" for p, t in zip(headers_1, headers_2)]
+    columns.insert(0, "Listener")
+
+    df_quality = df_raw.iloc[2:].copy()
+    df_quality.columns = columns
+    df_quality = df_quality.dropna(subset=["Listener"])
+
+    # Melt into long format
+    df_long = df_quality.melt(id_vars="Listener", var_name="Condition", value_name="Score")
+    df_long[['Pathology', 'Type']] = df_long['Condition'].str.extract(r'(.+)_([A-Za-z]+)')
+    df_long['Score'] = pd.to_numeric(df_long['Score'], errors='coerce')
+    df_long = df_long.dropna(subset=['Score'])
+
+    native_listeners = ['EN', 'MS', 'TN', 'TA', 'HH']
+    nonnative_listeners = ['SA', 'LB', 'TG', 'MP', 'ML']
+
+    results = []
+
+    for group, label in [
+        (df_long['Listener'].unique(), "All"),
+        (nonnative_listeners, "Non-native"),
+        (native_listeners, "Native")
+    ]:
+        for pathology in df_long['Pathology'].unique():
+            sub = df_long[(df_long['Pathology'] == pathology) & (df_long['Listener'].isin(group))]
+            orig = sub[sub['Type'] == 'Original'].set_index('Listener')['Score']
+            anon = sub[sub['Type'] == 'Anonymized'].set_index('Listener')['Score']
+            paired = pd.DataFrame({'Original': orig, 'Anonymized': anon}).dropna()
+
+            if not paired.empty:
+                t, p = ttest_rel(paired['Original'], paired['Anonymized'])
+                m_orig, s_orig = paired['Original'].mean(), paired['Original'].std()
+                m_anon, s_anon = paired['Anonymized'].mean(), paired['Anonymized'].std()
+            else:
+                m_orig = m_anon = s_orig = s_anon = p = np.nan
+
+            results.append({
+                'Pathology': pathology,
+                'Listener Group': label,
+                'Original Mean': round(m_orig),
+                'Original SD': round(s_orig),
+                'Anonymized Mean': round(m_anon),
+                'Anonymized SD': round(s_anon),
+                'p-value': p
+            })
+
+        # Overall comparison for group
+        overall = df_long[df_long['Listener'].isin(group)].groupby(['Listener', 'Type'])['Score'].mean().unstack()
+        t, p = ttest_rel(overall['Original'], overall['Anonymized'])
+        m_orig, s_orig = overall['Original'].mean(), overall['Original'].std()
+        m_anon, s_anon = overall['Anonymized'].mean(), overall['Anonymized'].std()
+
+        results.append({
+            'Pathology': 'Overall',
+            'Listener Group': label,
+            'Original Mean': round(m_orig),
+            'Original SD': round(s_orig),
+            'Anonymized Mean': round(m_anon),
+            'Anonymized SD': round(s_anon),
+            'p-value': p
+        })
+
+    df_stats = pd.DataFrame(results)
+
+    # -------------------------------
+    # FDR correction per group
+    # -------------------------------
+    corrected_rows = []
+    for group in ['All', 'Non-native', 'Native']:
+        df_sub = df_stats[(df_stats['Listener Group'] == group) & (df_stats['Pathology'] != 'Overall')].copy()
+        pvals = df_sub['p-value'].dropna().values
+        _, fdr_corrected, _, _ = multipletests(pvals, method='fdr_bh')
+        df_sub.loc[:, 'p-value'] = np.round(fdr_corrected, 3)
+        corrected_rows.append(df_sub)
+
+    # Append 'Overall' rows (not corrected)
+    df_overall = df_stats[df_stats['Pathology'] == 'Overall']
+    df_final = pd.concat(corrected_rows + [df_overall], ignore_index=True)
+    df_final['p-value'] = df_final['p-value'].round(3)
+
+    # -------------------------------
+    # Format as mean ± SD
+    # -------------------------------
+    df_final['Original'] = df_final['Original Mean'].astype("Int64").astype(str) + ' ± ' + df_final[
+        'Original SD'].astype("Int64").astype(str)
+    df_final['Anonymized'] = df_final['Anonymized Mean'].astype("Int64").astype(str) + ' ± ' + df_final[
+        'Anonymized SD'].astype("Int64").astype(str)
+
+
+    #####################################################################################################
+    # bar chart figure
+
+    bar_data = []
+
+    for group in ['All', 'Non-native', 'Native']:
+        df_group = df_final[df_final['Listener Group'] == group].copy()
+
+        for idx, row in df_group.iterrows():
+            try:
+                orig_mean, orig_std = [x.strip() for x in row['Original'].split('±')]
+                anon_mean, anon_std = [x.strip() for x in row['Anonymized'].split('±')]
+
+                orig_mean = float(orig_mean)
+                orig_std = float(orig_std)
+
+                anon_mean = float(anon_mean)
+                anon_std = float(anon_std)
+            except:
+                continue
+
+            bar_data.append({
+                'Group': group,
+                'Pathology': row['Pathology'],
+                'Type': 'Original',
+                'Mean': orig_mean,
+                'Std': orig_std,
+                'p-value': row['p-value']
+            })
+            bar_data.append({
+                'Group': group,
+                'Pathology': row['Pathology'],
+                'Type': 'Anonymized',
+                'Mean': anon_mean,
+                'Std': anon_std,
+                'p-value': row['p-value']
+            })
+
+    df_bar = pd.DataFrame(bar_data)
+
+    # --- Plot layout settings ---
+    fig, axes = plt.subplots(3, 1, figsize=(12, 18), sharex=True, sharey=True)
+    groups = ['All', 'Non-native', 'Native']
+    titles = ['a) All listeners', 'b) Non-native listeners', 'c) Native listeners']
+
+    for i, grp in enumerate(groups):
+        ax = axes[i]
+        df_plot = df_bar[df_bar['Group'] == grp]
+        order = df_plot['Pathology'].unique().tolist()
+
+        # Manual bar plotting for control over error bars
+        for j, pathology in enumerate(order):
+            for k, bar_type in enumerate(['Original', 'Anonymized']):
+                bar = df_plot[(df_plot['Pathology'] == pathology) & (df_plot['Type'] == bar_type)]
+                if not bar.empty:
+                    mean = bar['Mean'].values[0]
+                    std = bar['Std'].values[0]
+                    x_pos = j + (k - 0.5) * 0.2
+                    color = sns.color_palette('Set2')[k]
+                    ax.bar(x_pos, mean, yerr=std, width=0.18, label=bar_type if j == 0 else "",
+                           color=color, capsize=5, edgecolor='black')
+
+        # Title, labels, ticks
+        ax.set_title(titles[i], loc='left', fontsize=18)
+        ax.set_ylabel('Perceived quality normalized [%]', fontsize=16)
+        ax.set_ylim(0, 110)
+        ax.tick_params(axis='y', labelsize=14)
+        ax.set_xticks(range(len(order)))
+        ax.set_xticklabels(order, rotation=30, fontsize=14)
+        if i == 2:
+            ax.set_xlabel('Speech pathology group', fontsize=16)
+        else:
+            ax.set_xlabel('')
+        ax.legend(loc="lower right", fontsize=14, title_fontsize=15)
+
+        # Despine top and right edges
+        sns.despine(ax=ax, top=True, right=True)
+
+        # Annotate p-values above bars
+        for j, pathology in enumerate(order):
+            subset = df_plot[(df_plot['Group'] == grp) & (df_plot['Pathology'] == pathology)]
+            if subset['p-value'].nunique() == 1:
+                pval = subset['p-value'].iloc[0]
+                if pd.notna(pval):
+                    ptext = f"p < 0.001" if pval < 0.001 else f"p = {pval:.3f}"
+                    bar_max = subset['Mean'].max()
+                    std_max = subset['Std'].max()
+                    ax.text(j, bar_max + std_max + -3, ptext, ha='left', fontsize=13)
+
+
+    #####################################################################################################
+    # post hoc
+
+    headers_1 = pd.Series(df_raw.iloc[0, 1:]).fillna(method='ffill').astype(str)
+    headers_2 = pd.Series(df_raw.iloc[1, 1:]).fillna(method='ffill').astype(str)
+    columns = [f"{p.strip()}_{t.strip()}" for p, t in zip(headers_1, headers_2)]
+    columns.insert(0, "Listener")
+
+    df_quality = df_raw.iloc[2:].copy()
+    df_quality.columns = columns
+    df_quality = df_quality.dropna(subset=["Listener"])
+
+    df_long = df_quality.melt(id_vars="Listener", var_name="Condition", value_name="Score")
+    df_long[['Pathology', 'Type']] = df_long['Condition'].str.extract(r'(.+)_([A-Za-z]+)')
+    df_long['Score'] = pd.to_numeric(df_long['Score'], errors='coerce')
+    df_long = df_long.dropna(subset=['Score'])
+
+    # Compute degradation scores (original - anonymized)
+    pivot_df = df_long.pivot_table(index=['Listener', 'Pathology'], columns='Type', values='Score').reset_index()
+    pivot_df['Degradation'] = pivot_df['Original'] - pivot_df['Anonymized']
+
+    # One-way ANOVA across pathology groups
+    groups = [group['Degradation'].dropna().values for name, group in pivot_df.groupby('Pathology')]
+    f_stat, p_val_anova = f_oneway(*groups)
+    df1 = len(pivot_df['Pathology'].unique()) - 1
+    df2 = len(pivot_df) - len(pivot_df['Pathology'].unique())
+
+    print(f"Degrees of freedom: df1 = {df1}, df2 = {df2}")
+
+    anova_df = pd.DataFrame({
+        "Metric": ["F-statistic", "p-value", "df1 (between groups)", "df2 (within groups)"],
+        "Value": [round(f_stat, 2), round(p_val_anova, 3), df1, df2]
+    })
+
+    anova_csv_path = "./quality/quality_degradation_anova.csv"
+    anova_df.to_csv(anova_csv_path, index=False)
+
+    # Post-hoc comparisons for original and anonymized separately
+    for score_type in ['Original', 'Anonymized']:
+        pathologies = sorted(pivot_df['Pathology'].unique())
+        pairwise_results = []
+        for i in range(len(pathologies)):
+            for j in range(i + 1, len(pathologies)):
+                g1 = pathologies[i]
+                g2 = pathologies[j]
+                vals1 = pivot_df[pivot_df['Pathology'] == g1][score_type]
+                vals2 = pivot_df[pivot_df['Pathology'] == g2][score_type]
+                t_stat, p_val = ttest_rel(vals1, vals2)
+                pairwise_results.append((g1, g2, p_val))
+
+        raw_pvals = [res[2] for res in pairwise_results]
+        _, corrected_pvals, _, _ = multipletests(raw_pvals, method='fdr_bh')
+
+        # Build matrix
+        pval_matrix = pd.DataFrame(np.ones((len(pathologies), len(pathologies))), index=pathologies,
+                                   columns=pathologies)
+        for (group1, group2, _), corr_p in zip(pairwise_results, corrected_pvals):
+            pval_matrix.loc[group1, group2] = corr_p
+            pval_matrix.loc[group2, group1] = corr_p
+        pval_matrix = pval_matrix.round(3)
+
+    #####################################################################################################
+    # Native vs. non native
+
+    native_listeners = ['EN', 'MS', 'TN', 'TA', 'HH']
+    nonnative_listeners = ['SA', 'LB', 'TG', 'MP', 'ML']
+    pivot_df['Listener'] = pivot_df['Listener'].str.strip()
+
+    existing_nonnative = [l for l in nonnative_listeners if l in pivot_df['Listener'].unique()]
+    existing_native = [l for l in native_listeners if l in pivot_df['Listener'].unique()]
+
+    os.makedirs('./quality', exist_ok=True)
+
+    summary_rows = []
+
+    for score_type in ['Original', 'Anonymized']:
+        native_all = pivot_df[pivot_df['Listener'].isin(existing_native)][score_type]
+        nonnative_all = pivot_df[pivot_df['Listener'].isin(existing_nonnative)][score_type]
+
+        t_stat_all, p_val_all = ttest_ind(native_all, nonnative_all)
+
+        native_all_mean = round(native_all.mean())
+        native_all_std = round(native_all.std())
+        nonnative_all_mean = round(nonnative_all.mean())
+        nonnative_all_std = round(nonnative_all.std())
+
+        summary_rows.append({
+            "Score Type": score_type,
+            "Expert": f"{native_all_mean} ± {native_all_std}",
+            "Non-expert": f"{nonnative_all_mean} ± {nonnative_all_std}",
+            "p-value": round(p_val_all, 3)
+        })
+
+    df_summary = pd.DataFrame(summary_rows)
+    df_summary.to_csv("./quality/quality_expert_vs_nonexpert.csv", index=False)
 
 
 
