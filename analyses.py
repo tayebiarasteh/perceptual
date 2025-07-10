@@ -1491,6 +1491,179 @@ def correlation():
 
 
 
+def WRR_correlation():
+    os.makedirs('correlation_WRR', exist_ok=True)
+
+    with open("./correlation_WRR/correlationWRR.txt", "w") as f:
+        with redirect_stdout(f):
+            a0 = [58.89, 71.81, 66.45, 53.57, 77.78, 69.51]  # WRR [fixed]
+            a1 = [58.89, 71.81, 66.45, 53.57, 77.78, 69.51]  # WRR [fixed]
+            a2 = [58.89, 71.81, 66.45, 53.57, 77.78, 69.51]  # WRR [fixed]
+
+            df_fewshot = pd.read_csv(os.path.join(basedir, 'Perceptual speech anonym - accuracyfewshot.csv'))
+            df_zeroshot = pd.read_csv(os.path.join(basedir, 'Perceptual speech anonym - accuracyzeroshot.csv'))
+
+            # Compute column-wise averages
+            fewshot = df_fewshot[
+                ["CLP", "Dysarthria", "Dysglossia", "Dysphonia", "Control adults", "Control children"]].mean().tolist()
+            zeroshot = df_zeroshot[
+                ["CLP", "Dysarthria", "Dysglossia", "Dysphonia", "Control adults", "Control children"]].mean().tolist()
+
+            r_zero, p_zero = pearsonr(a0, zeroshot)
+            print(f"All listeners: Pearson's r (WRR vs Zero-shot): r = {r_zero:.3f}, p = {p_zero:.3f}")
+            r_few, p_few = pearsonr(a0, fewshot)
+            print(f"All listeners: Pearson's r (WRR vs Few-shot): r = {r_few:.3f}, p = {p_few:.3f}")
+
+            df_raw = pd.read_csv(os.path.join(basedir, 'Perceptual speech anonym - Quality Percentage.csv'),
+                                 header=None)
+            headers_1 = pd.Series(df_raw.iloc[0, 1:]).fillna(method='ffill').astype(str)
+            headers_2 = pd.Series(df_raw.iloc[1, 1:]).fillna(method='ffill').astype(str)
+            columns = [f"{p.strip()}_{t.strip()}" for p, t in zip(headers_1, headers_2)]
+            columns.insert(0, "Listener")
+
+            df_quality = df_raw.iloc[2:].copy()
+            df_quality.columns = columns
+            df_quality = df_quality.dropna(subset=["Listener"])
+
+            # Melt into long format
+            df_long = df_quality.melt(id_vars="Listener", var_name="Condition", value_name="Score")
+            df_long[['Pathology', 'Type']] = df_long['Condition'].str.extract(r'(.+)_([A-Za-z]+)')
+            df_long['Score'] = pd.to_numeric(df_long['Score'], errors='coerce')
+            df_long = df_long.dropna(subset=['Score'])
+
+            # Compute group-wise means
+            grouped = df_long.groupby(['Pathology', 'Type'])['Score'].mean().unstack()
+
+            # Compute overall average over groups
+            patients = ['CLP', 'Dysarthria', 'Dysglossia', 'Dysphonia', 'Control adults', 'Control children']
+            grouped = grouped.loc[patients]
+
+            anonym = grouped['Anonymized'].tolist()
+            orig = grouped['Original'].tolist()
+
+            r_anonym, p_anonym = pearsonr(a1, anonym)
+            print(f"All listeners: Pearson's r (WRR vs Anonymized): r = {r_anonym:.3f}, p = {p_anonym:.3f}")
+            r_orig, p_orig = pearsonr(a2, orig)
+            print(f"All listeners: Pearson's r (WRR vs Original): r = {r_orig:.3f}, p = {p_orig:.3f}")
+
+
+            ########## non native ##############
+            df_fewshot = pd.read_csv(os.path.join(basedir, 'Perceptual speech anonym - accuracyfewshot.csv'))
+            df_zeroshot = pd.read_csv(os.path.join(basedir, 'Perceptual speech anonym - accuracyzeroshot.csv'))
+
+            # List of non-native listeners
+            non_native_listeners = ['SA', 'TA', 'HH', 'MP', 'ML']
+
+            # Filter for non-native listeners only
+            df_fewshot = df_fewshot[df_fewshot['Listener'].isin(non_native_listeners)]
+            df_zeroshot = df_zeroshot[df_zeroshot['Listener'].isin(non_native_listeners)]
+
+            fewshot = df_fewshot[["CLP", "Dysarthria", "Dysglossia", "Dysphonia", "Control adults", "Control children"]].mean().tolist()
+            zeroshot = df_zeroshot[["CLP", "Dysarthria", "Dysglossia", "Dysphonia", "Control adults", "Control children"]].mean().tolist()
+
+            r_zero, p_zero = pearsonr(a0, zeroshot)
+            print('\n############# Non-native ################')
+            print(f"Non-native listeners: Pearson's r (WRR vs Zero-shot): r = {r_zero:.3f}, p = {p_zero:.3f}")
+            r_few, p_few = pearsonr(a0, fewshot)
+            print(f"Non-native listeners: Pearson's r (WRR vs Few-shot): r = {r_few:.3f}, p = {p_few:.3f}")
+
+            df_raw = pd.read_csv(os.path.join(basedir, 'Perceptual speech anonym - Quality Percentage.csv'), header=None)
+
+            headers_1 = pd.Series(df_raw.iloc[0, 1:]).fillna(method='ffill').astype(str)
+            headers_2 = pd.Series(df_raw.iloc[1, 1:]).fillna(method='ffill').astype(str)
+            columns = [f"{p.strip()}_{t.strip()}" for p, t in zip(headers_1, headers_2)]
+            columns.insert(0, "Listener")
+
+            df_quality = df_raw.iloc[2:].copy()
+            df_quality.columns = columns
+            df_quality = df_quality.dropna(subset=["Listener"])
+
+            # Melt into long format
+            df_long = df_quality.melt(id_vars="Listener", var_name="Condition", value_name="Score")
+            df_long[['Pathology', 'Type']] = df_long['Condition'].str.extract(r'(.+)_([A-Za-z]+)')
+            df_long['Score'] = pd.to_numeric(df_long['Score'], errors='coerce')
+            df_long = df_long.dropna(subset=['Score'])
+
+            # List of non-native listeners
+            non_native_listeners = ['SA', 'TA', 'HH', 'MP', 'ML']
+
+            # Filter for non-native listeners only
+            df_long = df_long[df_long['Listener'].isin(non_native_listeners)]
+
+            # Compute group-wise means
+            grouped = df_long.groupby(['Pathology', 'Type'])['Score'].mean().unstack()
+
+            # Compute overall average over the groups
+            patients = ['CLP', 'Dysarthria', 'Dysglossia', 'Dysphonia', 'Control adults', 'Control children']
+            grouped = grouped.loc[patients]
+
+            anonym = grouped['Anonymized'].tolist()
+            orig = grouped['Original'].tolist()
+
+            r_anonym, p_anonym = pearsonr(a1, anonym)
+            print(f"Non-native listeners: Pearson's r (WRR vs Anonymized): r = {r_anonym:.3f}, p = {p_anonym:.3f}")
+            r_orig, p_orig = pearsonr(a2, orig)
+            print(f"Non-native listeners: Pearson's r (WRR vs Original): r = {r_orig:.3f}, p = {p_orig:.3f}")
+
+
+            ########## Native ##############
+            df_fewshot = pd.read_csv(os.path.join(basedir, 'Perceptual speech anonym - accuracyfewshot.csv'))
+            df_zeroshot = pd.read_csv(os.path.join(basedir, 'Perceptual speech anonym - accuracyzeroshot.csv'))
+
+            # List of Native listeners
+            native_listeners = ['EN', 'MS', 'TN', 'LB', 'TG']
+
+            # Filter for Native listeners only
+            df_fewshot = df_fewshot[df_fewshot['Listener'].isin(native_listeners)]
+            df_zeroshot = df_zeroshot[df_zeroshot['Listener'].isin(native_listeners)]
+
+            fewshot = df_fewshot[["CLP", "Dysarthria", "Dysglossia", "Dysphonia", "Control adults", "Control children"]].mean().tolist()
+            zeroshot = df_zeroshot[["CLP", "Dysarthria", "Dysglossia", "Dysphonia", "Control adults", "Control children"]].mean().tolist()
+
+            r_zero, p_zero = pearsonr(a0, zeroshot)
+            print('\n############# Native ################')
+            print(f"Native listeners: Pearson's r (WRR vs Zero-shot): r = {r_zero:.3f}, p = {p_zero:.3f}")
+            r_few, p_few = pearsonr(a0, fewshot)
+            print(f"Native listeners: Pearson's r (WRR vs Few-shot): r = {r_few:.3f}, p = {p_few:.3f}")
+
+            df_raw = pd.read_csv(os.path.join(basedir, 'Perceptual speech anonym - Quality Percentage.csv'), header=None)
+
+            headers_1 = pd.Series(df_raw.iloc[0, 1:]).fillna(method='ffill').astype(str)
+            headers_2 = pd.Series(df_raw.iloc[1, 1:]).fillna(method='ffill').astype(str)
+            columns = [f"{p.strip()}_{t.strip()}" for p, t in zip(headers_1, headers_2)]
+            columns.insert(0, "Listener")
+
+            df_quality = df_raw.iloc[2:].copy()
+            df_quality.columns = columns
+            df_quality = df_quality.dropna(subset=["Listener"])
+
+            # Melt into long format
+            df_long = df_quality.melt(id_vars="Listener", var_name="Condition", value_name="Score")
+            df_long[['Pathology', 'Type']] = df_long['Condition'].str.extract(r'(.+)_([A-Za-z]+)')
+            df_long['Score'] = pd.to_numeric(df_long['Score'], errors='coerce')
+            df_long = df_long.dropna(subset=['Score'])
+
+            # List of native listeners
+            native_listeners = ['EN', 'MS', 'TN', 'LB', 'TG']
+            df_long = df_long[df_long['Listener'].isin(native_listeners)]
+
+            # Compute group-wise means
+            grouped = df_long.groupby(['Pathology', 'Type'])['Score'].mean().unstack()
+
+            # Compute overall average over the groups
+            patients = ['CLP', 'Dysarthria', 'Dysglossia', 'Dysphonia', 'Control adults', 'Control children']
+            grouped = grouped.loc[patients]
+
+            anonym = grouped['Anonymized'].tolist()
+            orig = grouped['Original'].tolist()
+
+            r_anonym, p_anonym = pearsonr(a1, anonym)
+            print(f"Native listeners: Pearson's r (WRR vs Anonymized): r = {r_anonym:.3f}, p = {p_anonym:.3f}")
+            r_orig, p_orig = pearsonr(a2, orig)
+            print(f"Native listeners: Pearson's r (WRR vs Original): r = {r_orig:.3f}, p = {p_orig:.3f}")
+
+
+
 def scatterplot():
     os.makedirs('correlation', exist_ok=True)
 
@@ -1843,6 +2016,327 @@ def scatterplot():
     plt.savefig("./correlation/final_scatter_plot_correlation.png")
 
 
+def WRR_scatterplot():
+    os.makedirs('correlation', exist_ok=True)
+
+    ######################### for all ##############################
+
+    # Subplot 1: WRR vs Turing Accuracy
+    a0 = [58.89, 71.81, 66.45, 53.57, 77.78, 69.51]  # WRR [fixed]
+
+    df_fewshot = pd.read_csv(os.path.join(basedir, 'Perceptual speech anonym - accuracyfewshot.csv'))
+    df_zeroshot = pd.read_csv(os.path.join(basedir, 'Perceptual speech anonym - accuracyzeroshot.csv'))
+
+    # Compute column-wise averages
+    b0_triangle = df_fewshot[["CLP", "Dysarthria", "Dysglossia", "Dysphonia", "Control adults", "Control children"]].mean().tolist()
+    b0_circle = df_zeroshot[["CLP", "Dysarthria", "Dysglossia", "Dysphonia", "Control adults", "Control children"]].mean().tolist()
+
+
+    # subplot 2
+    df_raw = pd.read_csv(os.path.join(basedir, 'Perceptual speech anonym - Quality Percentage.csv'), header=None)
+    headers_1 = pd.Series(df_raw.iloc[0, 1:]).fillna(method='ffill').astype(str)
+    headers_2 = pd.Series(df_raw.iloc[1, 1:]).fillna(method='ffill').astype(str)
+    columns = [f"{p.strip()}_{t.strip()}" for p, t in zip(headers_1, headers_2)]
+    columns.insert(0, "Listener")
+
+    df_quality = df_raw.iloc[2:].copy()
+    df_quality.columns = columns
+    df_quality = df_quality.dropna(subset=["Listener"])
+
+    # Melt into long format
+    df_long = df_quality.melt(id_vars="Listener", var_name="Condition", value_name="Score")
+    df_long[['Pathology', 'Type']] = df_long['Condition'].str.extract(r'(.+)_([A-Za-z]+)')
+    df_long['Score'] = pd.to_numeric(df_long['Score'], errors='coerce')
+    df_long = df_long.dropna(subset=['Score'])
+
+    # Compute group-wise means
+    grouped = df_long.groupby(['Pathology', 'Type'])['Score'].mean().unstack()
+
+    # Compute overall average over groups
+    patients = ["CLP", "Dysarthria", "Dysglossia", "Dysphonia", "Control adults", "Control children"]
+    grouped = grouped.loc[patients]
+
+    b1_circle = grouped['Anonymized'].tolist()
+    b2_circle = grouped['Original'].tolist()
+
+    a1 = [58.89, 71.81, 66.45, 53.57, 77.78, 69.51]  # WRR [fixed]
+    a2 = [58.89, 71.81, 66.45, 53.57, 77.78, 69.51]  # WRR [fixed]
+
+    fig, axs = plt.subplots(1, 3, figsize=(18, 6))
+
+    # --- First Subplot ---
+    axs[0].scatter(b0_circle, a0, color='blue', marker='o', label='Zero-shot Turing', s=120)
+    axs[0].scatter(b0_triangle, a0, color='orange', marker='^', label='Few-shot Turing', s=120)
+    axs[0].set_title("WRR vs. Turing accuracy", fontsize=20, loc='center')
+    axs[0].set_xlabel("Turing accuracy [%]", fontsize=18)
+    axs[0].set_ylabel("WRR [%]", fontsize=18)
+    axs[0].tick_params(axis='both', labelsize=16)
+    axs[0].legend(fontsize=16)
+    # axs[0].set_ylim(int(min(a0)), int(max(a0) +3))
+    axs[0].set_ylim(50, 85)
+    # axs[0].set_xlim(int(min(b0_circle)-3), 100)
+    axs[0].set_xlim(79.01, 100)
+
+    # --- Second Subplot ---
+    axs[1].scatter(b1_circle, a1, color='red', marker='s', label='Anonymized', s=120)  # Red squares
+    axs[1].set_title("Quality anonymized", fontsize=20, loc='center')
+    axs[1].set_xlabel("Perceived quality normalized [%]", fontsize=18)
+    axs[1].set_ylabel("WRR [%]", fontsize=18)
+    axs[1].tick_params(axis='both', labelsize=16)
+    # axs[1].legend(fontsize=16)
+    # axs[1].set_ylim(int(min(a1)-1), 100)
+    axs[1].set_ylim(50, 85)
+    # axs[1].set_xlim(int(min(b1_circle)-1), int(max(b1_circle) +2))
+    axs[1].set_xlim(49.1, 70)
+
+    # --- Third Subplot ---
+    axs[2].scatter(b2_circle, a2, color='black', marker='*', label='Original', s=120)  # Red squares
+    axs[2].set_title("Quality original", fontsize=20, loc='center')
+    axs[2].set_xlabel("Perceived quality normalized [%]", fontsize=18)
+    axs[2].set_ylabel("WRR [%]", fontsize=18)
+    axs[2].tick_params(axis='both', labelsize=16)
+    # axs[2].legend(fontsize=16)
+    # axs[2].set_ylim(int(min(a2)-1), 100)
+    axs[2].set_ylim(50, 85)
+    # axs[2].set_xlim(int(min(b2_circle)-1), int(max(b2_circle) +2))
+    axs[2].set_xlim(74.7, 95)
+
+
+    plt.tight_layout()
+    plt.savefig("./correlation_WRR/scatter_plot_correlationWRR.png")
+
+    ######################### for non native ##############################
+
+    # Subplot 1: WRR vs Turing Accuracy
+    a0 = [58.89, 71.81, 66.45, 53.57, 77.78, 69.51]  # WRR [fixed]
+
+    df_fewshot = pd.read_csv(os.path.join(basedir, 'Perceptual speech anonym - accuracyfewshot.csv'))
+    df_zeroshot = pd.read_csv(os.path.join(basedir, 'Perceptual speech anonym - accuracyzeroshot.csv'))
+
+    # List of non-native listeners
+    non_native_listeners = ['SA', 'TA', 'HH', 'MP', 'ML']
+
+    # Filter for non-native listeners only
+    df_fewshot = df_fewshot[df_fewshot['Listener'].isin(non_native_listeners)]
+    df_zeroshot = df_zeroshot[df_zeroshot['Listener'].isin(non_native_listeners)]
+
+    # Compute column-wise averages
+    b0_triangle = df_fewshot[["CLP", "Dysarthria", "Dysglossia", "Dysphonia", "Control adults", "Control children"]].mean().tolist()
+    b0_circle = df_zeroshot[["CLP", "Dysarthria", "Dysglossia", "Dysphonia", "Control adults", "Control children"]].mean().tolist()
+
+    # subplot 2
+    df_raw = pd.read_csv(os.path.join(basedir, 'Perceptual speech anonym - Quality Percentage.csv'), header=None)
+
+
+    headers_1 = pd.Series(df_raw.iloc[0, 1:]).fillna(method='ffill').astype(str)
+    headers_2 = pd.Series(df_raw.iloc[1, 1:]).fillna(method='ffill').astype(str)
+    columns = [f"{p.strip()}_{t.strip()}" for p, t in zip(headers_1, headers_2)]
+    columns.insert(0, "Listener")
+
+    df_quality = df_raw.iloc[2:].copy()
+    df_quality.columns = columns
+    df_quality = df_quality.dropna(subset=["Listener"])
+
+    # Melt into long format
+    df_long = df_quality.melt(id_vars="Listener", var_name="Condition", value_name="Score")
+    df_long[['Pathology', 'Type']] = df_long['Condition'].str.extract(r'(.+)_([A-Za-z]+)')
+    df_long['Score'] = pd.to_numeric(df_long['Score'], errors='coerce')
+    df_long = df_long.dropna(subset=['Score'])
+
+    # List of non-native listeners
+    non_native_listeners = ['SA', 'TA', 'HH', 'MP', 'ML']
+
+    # Filter for non-native listeners only
+    df_long = df_long[df_long['Listener'].isin(non_native_listeners)]
+
+    # Compute group-wise means
+    grouped = df_long.groupby(['Pathology', 'Type'])['Score'].mean().unstack()
+
+    # Compute overall average over the 4 patient groups
+    patients = ["CLP", "Dysarthria", "Dysglossia", "Dysphonia", "Control adults", "Control children"]
+    grouped = grouped.loc[patients]
+
+    b1_circle = grouped['Anonymized'].tolist()
+    b2_circle = grouped['Original'].tolist()
+
+    a1 = [58.89, 71.81, 66.45, 53.57, 77.78, 69.51]  # WRR [fixed]
+    a2 = [58.89, 71.81, 66.45, 53.57, 77.78, 69.51]  # WRR [fixed]
+
+    fig, axs = plt.subplots(1, 3, figsize=(18, 6))
+
+    # --- First Subplot ---
+    axs[0].scatter(b0_circle, a0, color='blue', marker='o', label='Zero-shot Turing', s=120)
+    axs[0].scatter(b0_triangle, a0, color='orange', marker='^', label='Few-shot Turing', s=120)
+    axs[0].set_title("WRR vs. Turing accuracy", fontsize=20, loc='center')
+    axs[0].set_xlabel("Turing accuracy [%]", fontsize=18)
+    axs[0].set_ylabel("WRR [%]", fontsize=18)
+    axs[0].tick_params(axis='both', labelsize=16)
+    axs[0].legend(fontsize=16)
+    # axs[0].set_ylim(int(min(a0)), int(max(a0) +3))
+    axs[0].set_ylim(50, 85)
+    # axs[0].set_xlim(int(min(b0_circle)-3), 100)
+    axs[0].set_xlim(79.01, 100)
+
+    # --- Second Subplot ---
+    axs[1].scatter(b1_circle, a1, color='red', marker='s', label='Anonymized', s=120)  # Red squares
+    axs[1].set_title("Quality anonymized", fontsize=20, loc='center')
+    axs[1].set_xlabel("Perceived quality normalized [%]", fontsize=18)
+    axs[1].set_ylabel("WRR [%]", fontsize=18)
+    axs[1].tick_params(axis='both', labelsize=16)
+    # axs[1].legend(fontsize=16)
+    # axs[1].set_ylim(int(min(a1)-1), 100)
+    axs[1].set_ylim(50, 85)
+    # axs[1].set_xlim(int(min(b1_circle)-1), int(max(b1_circle) +2))
+    axs[1].set_xlim(49.1, 70)
+
+    # --- Third Subplot ---
+    axs[2].scatter(b2_circle, a2, color='black', marker='*', label='Original', s=120)  # Red squares
+    axs[2].set_title("Quality original", fontsize=20, loc='center')
+    axs[2].set_xlabel("Perceived quality normalized [%]", fontsize=18)
+    axs[2].set_ylabel("WRR [%]", fontsize=18)
+    axs[2].tick_params(axis='both', labelsize=16)
+    # axs[2].legend(fontsize=16)
+    # axs[2].set_ylim(int(min(a2)-1), 100)
+    axs[2].set_ylim(50, 85)
+    # axs[2].set_xlim(int(min(b2_circle)-1), int(max(b2_circle) +2))
+    axs[2].set_xlim(74.7, 95)
+
+
+    plt.tight_layout()
+    plt.savefig("./correlation_WRR/scatter_plot_correlation_nonnativeWRR.png")
+
+    ######################### for native ##############################
+
+    # Subplot 1: WRR vs Turing Accuracy
+    a0 = [58.89, 71.81, 66.45, 53.57, 77.78, 69.51]  # WRR [fixed]
+
+    df_fewshot = pd.read_csv(os.path.join(basedir, 'Perceptual speech anonym - accuracyfewshot.csv'))
+    df_zeroshot = pd.read_csv(os.path.join(basedir, 'Perceptual speech anonym - accuracyzeroshot.csv'))
+
+    # List of native listeners
+    native_listeners = ['EN', 'MS', 'TN', 'LB', 'TG']
+
+    # Filter for non-native listeners only
+    df_fewshot = df_fewshot[df_fewshot['Listener'].isin(native_listeners)]
+    df_zeroshot = df_zeroshot[df_zeroshot['Listener'].isin(native_listeners)]
+
+    # Compute column-wise averages
+    b0_triangle = df_fewshot[["CLP", "Dysarthria", "Dysglossia", "Dysphonia", "Control adults", "Control children"]].mean().tolist()
+    b0_circle = df_zeroshot[["CLP", "Dysarthria", "Dysglossia", "Dysphonia", "Control adults", "Control children"]].mean().tolist()
+
+    # subplot 2
+    df_raw = pd.read_csv(os.path.join(basedir, 'Perceptual speech anonym - Quality Percentage.csv'), header=None)
+
+
+    headers_1 = pd.Series(df_raw.iloc[0, 1:]).fillna(method='ffill').astype(str)
+    headers_2 = pd.Series(df_raw.iloc[1, 1:]).fillna(method='ffill').astype(str)
+    columns = [f"{p.strip()}_{t.strip()}" for p, t in zip(headers_1, headers_2)]
+    columns.insert(0, "Listener")
+
+    df_quality = df_raw.iloc[2:].copy()
+    df_quality.columns = columns
+    df_quality = df_quality.dropna(subset=["Listener"])
+
+    # Melt into long format
+    df_long = df_quality.melt(id_vars="Listener", var_name="Condition", value_name="Score")
+    df_long[['Pathology', 'Type']] = df_long['Condition'].str.extract(r'(.+)_([A-Za-z]+)')
+    df_long['Score'] = pd.to_numeric(df_long['Score'], errors='coerce')
+    df_long = df_long.dropna(subset=['Score'])
+
+    # List of native listeners
+    native_listeners = ['EN', 'MS', 'TN', 'LB', 'TG']
+
+    # Filter for non-native listeners only
+    df_long = df_long[df_long['Listener'].isin(native_listeners)]
+
+    # Compute group-wise means
+    grouped = df_long.groupby(['Pathology', 'Type'])['Score'].mean().unstack()
+
+    # Compute overall average over groups
+    patients = ["CLP", "Dysarthria", "Dysglossia", "Dysphonia", "Control adults", "Control children"]
+    grouped = grouped.loc[patients]
+
+    b1_circle = grouped['Anonymized'].tolist()
+    b2_circle = grouped['Original'].tolist()
+
+    a1 = [58.89, 71.81, 66.45, 53.57, 77.78, 69.51]  # WRR [fixed]
+    a2 = [58.89, 71.81, 66.45, 53.57, 77.78, 69.51]  # WRR [fixed]
+
+    fig, axs = plt.subplots(1, 3, figsize=(18, 6))
+
+    # --- First Subplot ---
+    axs[0].scatter(b0_circle, a0, color='blue', marker='o', label='Zero-shot Turing', s=120)
+    axs[0].scatter(b0_triangle, a0, color='orange', marker='^', label='Few-shot Turing', s=120)
+    axs[0].set_title("WRR vs. Turing accuracy", fontsize=20, loc='center')
+    axs[0].set_xlabel("Turing accuracy [%]", fontsize=18)
+    axs[0].set_ylabel("WRR [%]", fontsize=18)
+    axs[0].tick_params(axis='both', labelsize=16)
+    axs[0].legend(fontsize=16)
+    # axs[0].set_ylim(int(min(a0)), int(max(a0) +3))
+    axs[0].set_ylim(50, 85)
+    # axs[0].set_xlim(int(min(b0_circle)-3), 100)
+    axs[0].set_xlim(79.01, 100)
+
+    # --- Second Subplot ---
+    axs[1].scatter(b1_circle, a1, color='red', marker='s', label='Anonymized', s=120)  # Red squares
+    axs[1].set_title("Quality anonymized", fontsize=20, loc='center')
+    axs[1].set_xlabel("Perceived quality normalized [%]", fontsize=18)
+    axs[1].set_ylabel("WRR [%]", fontsize=18)
+    axs[1].tick_params(axis='both', labelsize=16)
+    # axs[1].legend(fontsize=16)
+    # axs[1].set_ylim(int(min(a1)-1), 100)
+    axs[1].set_ylim(50, 85)
+    # axs[1].set_xlim(int(min(b1_circle)-1), int(max(b1_circle) +2))
+    axs[1].set_xlim(49.1, 70)
+
+    # --- Third Subplot ---
+    axs[2].scatter(b2_circle, a2, color='black', marker='*', label='Original', s=120)  # Red squares
+    axs[2].set_title("Quality original", fontsize=20, loc='center')
+    axs[2].set_xlabel("Perceived quality normalized [%]", fontsize=18)
+    axs[2].set_ylabel("WRR [%]", fontsize=18)
+    axs[2].tick_params(axis='both', labelsize=16)
+    # axs[2].legend(fontsize=16)
+    # axs[2].set_ylim(int(min(a2)-1), 100)
+    axs[2].set_ylim(50, 85)
+    # axs[2].set_xlim(int(min(b2_circle)-1), int(max(b2_circle) +2))
+    axs[2].set_xlim(74.7, 95)
+
+
+    plt.tight_layout()
+    plt.savefig("./correlation_WRR/scatter_plot_correlation_nativeWRR.png")
+
+    ############################# Appender #############################
+
+    img1_path = "./correlation_WRR/scatter_plot_correlationWRR.png"
+    img2_path = "./correlation_WRR/scatter_plot_correlation_nonnativeWRR.png"
+    img3_path = "./correlation_WRR/scatter_plot_correlation_nativeWRR.png"
+
+    # Open images
+    img1 = Image.open(img1_path)
+    img2 = Image.open(img2_path)
+    img3 = Image.open(img3_path)
+
+    # Create a vertical stack of subplots
+    fig, axs = plt.subplots(3, 1, figsize=(10, 11))  # Slightly smaller height
+
+    # Turn off axis display for each subplot
+    for ax in axs:
+        ax.axis('off')
+
+    # Show each image in its respective subplot and add a title
+    axs[0].imshow(img1)
+    axs[0].set_title("a) All listeners", fontsize=14, loc='left')
+
+    axs[1].imshow(img2)
+    axs[1].set_title("b) Non-native listeners", fontsize=14, loc='left')
+
+    axs[2].imshow(img3)
+    axs[2].set_title("c) Native listeners", fontsize=14, loc='left')
+
+    # Adjust layout to prevent overlap
+    plt.tight_layout()
+    plt.savefig("./correlation_WRR/final_scatter_plot_correlationWRR.png")
+
 
 def boxplot_appender():
     img1 = mpimg.imread('./zero_shot/turing_box_zeroshot.png')
@@ -1865,3 +2359,19 @@ def boxplot_appender():
     plt.savefig("./zero_shot/boxplot.png")
 
 
+
+
+if __name__ == '__main__':
+    # expertise_zeroshot_turing()
+    # expertise_fewshot_turing()
+    # zeroshot_turing()
+    # fewishot_turing()
+    # boxplot_appender()
+    # male_vs_female_turing_fewshot()
+    # male_vs_female_turing_zeroshot()
+    # expertise_quality()
+    # quality()
+    # correlation()
+    # WRR_correlation()
+    # scatterplot()
+    WRR_scatterplot()
